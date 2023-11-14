@@ -10,41 +10,32 @@
 #include "Point.h"
 #include "params.h"
 
+using namespace std;
+
+struct Meta {
+    Bucket* nextBucket;
+    Bucket* prevBucket;
+    int entries;
+    Meta():entries(0),nextBucket(nullptr), prevBucket(nullptr) {}
+};
+
+struct Entry {
+    int id;
+    Point* p; //position (x,y)
+    Point* v; //velocity (vx,vy)
+    bool flag;
+    Entry(int id) : id(id), p(nullptr), v(nullptr), flag(false) {};
+};
 
 class Bucket{
 private:
-    std::vector<Point> data;
+    Meta* meta; //meta
+    list<Entry*> entries; //será así????
+
 public:
-    Bucket* nextBucket;
-    Bucket* prevBucket;
-
-    Bucket() : nextBucket(nullptr), prevBucket(nullptr) { };
-
-    void push(const Point& point){
-        data.push_back(point);
-    }
-
-    void pop() {
-        if(!data.empty()){
-            data.pop_back();
-        }
-    }
-
-    bool pop(const Point& point){
-        for(auto it = data.begin(); it != data.end(); it ++ ){
-            if(*it == point){
-                data.erase(it);
-                return true ;
-            }
-        }
-        return false;
-    }
-
-    void printBucket() const {
-        for(const Point&point : data){
-            std::cout << point ;
-        }std::cout << std::endl;
-    }
+    Bucket(): meta(nullptr) { };
+    
+    //insert
 
     ~Bucket() = default;
 
