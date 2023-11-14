@@ -10,18 +10,44 @@
 #include "Point.h"
 #include "params.h"
 
-// TODO Double linked-list
-// ****************************************
-// But for the moment is a **linked-list**
-// ****************************************
+
 class Bucket{
 private:
-    // TODO Double Linked-list
-    std::list<Point> data;
+    std::vector<Point> data;
 public:
     Bucket* nextBucket;
-    // Bucket* prevBucket;
-    Bucket() : nextBucket(nullptr) { };
+    Bucket* prevBucket;
+
+    Bucket() : nextBucket(nullptr), prevBucket(nullptr) { };
+
+    void push(const Point& point){
+        data.push_back(point);
+    }
+
+    void pop() {
+        if(!data.empty()){
+            data.pop_back();
+        }
+    }
+
+    bool pop(const Point& point){
+        for(auto it = data.begin(); it != data.end(); it ++ ){
+            if(*it == point){
+                data.erase(it);
+                return true ;
+            }
+        }
+        return false;
+    }
+
+    void printBucket() const {
+        for(const Point&point : data){
+            std::cout << point ;
+        }std::cout << std::endl;
+    }
+
+    ~Bucket() = default;
+
 };
 
 #endif //D_GRID_BUCKET_H

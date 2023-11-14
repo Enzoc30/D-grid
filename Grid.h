@@ -38,8 +38,6 @@ public:
     // TODO Query - Search
 
 
-
-
     ~Grid() {
         for (auto& row : matrix) {
             for (Bucket* bucket : row) {
