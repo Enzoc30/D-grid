@@ -12,6 +12,8 @@
 
 using namespace std;
 
+class Bucket;
+
 struct Meta {
     Bucket* nextBucket;
     Bucket* prevBucket;
