@@ -86,6 +86,7 @@ public:
         }
         return Safe(value / other.value);
     }
+
     Safe operator-() const {
         return Safe(-value);
     }

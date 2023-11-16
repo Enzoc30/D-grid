@@ -30,16 +30,22 @@ struct Entry {
 };
 
 class Bucket{
-private:
+
+public:
     Meta* meta; //meta
     list<Entry*> entries; //será así????
 
-public:
     Bucket(): meta(nullptr) { };
-    
+
     //insert
 
-    ~Bucket() = default;
+    ~Bucket(){
+        for(auto entry : entries ){
+            delete entry->p;
+            delete entry->v;
+            delete entry;
+        }delete meta;
+    };
 
 };
 

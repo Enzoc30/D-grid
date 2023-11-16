@@ -15,9 +15,11 @@
 
 class Point {
 private:
+    int objectID;
     std::pair<Type, Type> coordinates;
+
 public:
-    Point(Type x, Type y) : coordinates(x, y) {};
+    Point(Type x, Type y) : coordinates(x, y), objectID(-1) {};
     Point() = default;
 
     void setx(Type x) { coordinates.first = x; }
