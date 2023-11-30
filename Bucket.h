@@ -12,41 +12,29 @@
 
 using namespace std;
 
-class Bucket;
 
-struct Meta {
+
+//struct Meta {
+//    Bucket* nextBucket;
+//    Bucket* prevBucket;
+//    int entries;
+//    Meta():entries(0),nextBucket(nullptr), prevBucket(nullptr) {}
+//};
+//
+//struct Entry {
+//    int id;
+//    Point* p; //position (x,y)
+//    Point* v; //velocity (vx,vy)
+//    bool flag;
+//    Entry(int id) : id(id), p(nullptr), v(nullptr), flag(false) {};
+//};
+
+struct Bucket {
+    int objectData;
     Bucket* nextBucket;
-    Bucket* prevBucket;
-    int entries;
-    Meta():entries(0),nextBucket(nullptr), prevBucket(nullptr) {}
-};
+    int numObjects;
 
-struct Entry {
-    int id;
-    Point* p; //position (x,y)
-    Point* v; //velocity (vx,vy)
-    bool flag;
-    Entry(int id) : id(id), p(nullptr), v(nullptr), flag(false) {};
-};
-
-class Bucket{
-
-public:
-    Meta* meta; //meta
-    list<Entry*> entries; //será así????
-
-    Bucket(): meta(nullptr) { };
-
-    //insert
-
-    ~Bucket(){
-        for(auto entry : entries ){
-            delete entry->p;
-            delete entry->v;
-            delete entry;
-        }delete meta;
-    };
-
+    Bucket(int data) : objectData(data), nextBucket(nullptr), numObjects(1) {}
 };
 
 #endif //D_GRID_BUCKET_H
