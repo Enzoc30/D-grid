@@ -8,6 +8,7 @@
 #include <iostream>
 #include <utility>
 #include <vector>
+#include <algorithm>
 #include "Point.h"
 #include "params.h"
 
@@ -28,11 +29,8 @@ struct Entry {
     Point p;
     Point v;
     bool flag;
-    string time;
-    Entry(int data) : id(data), p(0,0), v(0,0), flag(false) {};
-    Entry(int id_, std::string& t, int lat, int lon, int sx, int sy)
-            : id(id_), time(t), p(lat, lon), v(sx,sy) {}
-
+    double time;
+    Entry(int id) : id(id), p(0,0), v(0,0), flag(false) {};
 };
 
 struct Bucket {
@@ -53,9 +51,9 @@ struct Bucket {
         else
             return false;
     }
-    bool deleteEntry(Entry e){
+    bool deleteEntry(int id){
         auto it = find_if(objectData.begin(), objectData.end(),
-                          [e](Entry& entry) { return entry.id == e.id; });
+                          [id](const Entry& entry) { return entry.id == id; });
         if (it != objectData.end()) {
             objectData.erase(it);
             entries--;

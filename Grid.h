@@ -42,45 +42,45 @@ public:
         return grid[cellX][cellY];
     }
 
-    void localUpdate(Entry oldEntry, Entry newEntry) {
-        if (oldEntry.p.getX() == newEntry.p.getX() && oldEntry.p.getY() == newEntry.p.getY()) {
-            vector<Bucket*> currentBucket = getCell(oldEntry.p.getX(),oldEntry.p.getY());
+    void localUpdate(int oldX, int oldY, int newX, int newY, int data) {
+        if (oldX == newX && oldY == newY) {
+            vector<Bucket*> currentBucket = getCell(oldX,oldY);
             for(auto &o : currentBucket) {
                 for (auto &entry: o->objectData) {
-                    if (entry.id == newEntry.id) {
-                        Point newPoint(newEntry.p.getX(), newEntry.p.getY());
+                    if (entry.id == data) {
+                        Point newPoint(newX, newY);
                         entry.p = newPoint;
                         break;
                     }
                 }
             }
         } else {
-            deleteFromCell(oldEntry);
-            insertIntoCell(newEntry);
+            deleteFromCell(oldX, oldY, data);
+            insertIntoCell(newX, newY, data);
         }
     }
 
-    void deleteFromCell(Entry &data) {
-        int cellX = data.p.getX() / cellSize;
-        int cellY = data.p.getY() / cellSize;
+    void deleteFromCell(int x, int y, int data) {
+        int cellX = x / cellSize;
+        int cellY = y / cellSize;
 
         vector<Bucket*> entries = grid[cellX][cellY];
         for(auto &oo : entries) {
             oo->objectData.erase(
                     remove_if(oo->objectData.begin(), oo->objectData.end(),
-                              [data](const Entry &entry) { return entry.id == data.id; }),
+                              [data](const Entry &entry) { return entry.id == data; }),
                     oo->objectData.end()
             );
         }
     }
 
-    void insertIntoCell(Entry &data) {
-        int cellX = data.p.getX() / cellSize;
-        int cellY = data.p.getY() / cellSize;
-        auto ins = grid[cellX][cellY].back()->insert(data.id);
+    void insertIntoCell(int x, int y, int data) {
+        int cellX = x / cellSize;
+        int cellY = y / cellSize;
+        auto ins = grid[cellX][cellY].back()->insert(data);
         if(!ins){
             Bucket* b = new Bucket(bucketSize);
-            b->insert(data.id);
+            b->insert(data);
             grid[cellX][cellY].push_back(b);
         }
     }

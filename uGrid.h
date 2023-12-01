@@ -73,31 +73,18 @@ public:
         SecondaryEntry oldEntry = *SearchbyIS(newEntry.id);
         auto oldgridcell = *oldEntry.ptr2;
         if (oldgridcell == newgridcell) {
-            vector<Bucket*> currentBucket = oldgridcell;
-            for(auto &o : currentBucket) {
-                for (auto &entry: o->objectData) {
-                    if (entry.id == newEntry.id) {
-                        Point newPoint(newEntry.p.getX(), newEntry.p.getY());
-                        entry.p = newPoint;
-                        break;
-                    }
-                }
-            }
+            Bucket* currentBucket = oldEntry.ptr1;
+            Point newPoint(newEntry.p.getX(), newEntry.p.getY());
+            currentBucket->objectData[oldEntry.index].p = newPoint;
         } else {
-            oldEntry.ptr1->deleteEntry(oldEntry);
+            deleteFromCell(oldEntry);
             insertIntoCell(newEntry);
         }
     }
 
-    void deleteFromCell(Entry &data) {
-        int cellX = data.p.getX() / cellSize;
-        int cellY = data.p.getY() / cellSize;
-
-        vector<Bucket*> entries = grid[cellX][cellY];
-        for(auto &oo : entries) {
-            oo->deleteEntry(data.id);
-        }
-        secondaryIndex.erase(data.id);
+    void deleteFromCell(SecondaryEntry &e) {
+        e.ptr1->deleteEntry(e.oid);
+        secondaryIndex.erase(e.oid);
     }
 
     void insertIntoCell(Entry &data) {
@@ -108,10 +95,10 @@ public:
             grid[cellX][cellY].push_back(b);
         }
 
-        auto ins = grid[cellX][cellY].back()->insert(data);
+        auto ins = grid[cellX][cellY].back()->insert(data.id);
         if(!ins){
             Bucket* b = new Bucket(bucketSize);
-            b->insert(data);
+            b->insert(data.id);
             grid[cellX][cellY].push_back(b);
         }
         SecondaryEntry minieentrie(&grid[cellX][cellY], grid[cellX][cellY].back(), data.id);
