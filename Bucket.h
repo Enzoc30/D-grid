@@ -48,6 +48,17 @@ struct Bucket {
         else
             return false;
     }
+    bool deleteEntry(int id){
+        auto it = find_if(objectData.begin(), objectData.end(),
+                          [id](const Entry& entry) { return entry.id == id; });
+        if (it != objectData.end()) {
+            objectData.erase(it);
+            entries--;
+            return true;
+        } else {
+            return false;
+        }
+    }
 };
 
 #endif //D_GRID_BUCKET_H

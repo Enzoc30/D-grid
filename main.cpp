@@ -10,7 +10,7 @@ void insertRandomPoint(uGrid& grid) {
     int randomX = disCoord(gen);
     int randomY = disCoord(gen);
 
-    std::uniform_int_distribution<int> disData(1, 100);
+    std::uniform_int_distribution<int> disData(15, 10000);
     int randomData = disData(gen);
 
     grid.insertIntoCell(randomX, randomY, randomData);
@@ -19,19 +19,15 @@ void insertRandomPoint(uGrid& grid) {
 
 int main() {
 
-    uGrid myGrid(100, 10, 3);
+    uGrid myGrid(100, 10, 8);
 
-    for (int i = 0; i < 555; ++i) {
+    for (int i = 0; i < 5555; i++) {
         insertRandomPoint(myGrid);
     }
 
-    std::cout << "Cuadrícula antes de la actualización:" << std::endl;
-    myGrid.printGrid();
-
-    insertRandomPoint(myGrid);  // Simula una inserción aleatoria
+    std::cout << "Cuadrícula despues de la actualización:" << std::endl;
     myGrid.printGrid();
 
 
-    std::cout << "------------------------" << std::endl;
     return 0;
 }

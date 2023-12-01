@@ -8,6 +8,7 @@
 #include <iostream>
 #include "Bucket.h"
 #include <vector>
+#include "unordered_map"
 #include <algorithm>
 
 using namespace std;
@@ -44,7 +45,7 @@ private:
     int bucketSize;
 
     vector<vector<vector<Bucket*>>> grid;
-    vector<SecondaryEntry> secondaryIndex;
+    unordered_map<int,SecondaryEntry> secondaryIndex;
 
 public:
     int getgridSize() const{return gridSize;}
@@ -89,12 +90,9 @@ public:
 
         vector<Bucket*> entries = grid[cellX][cellY];
         for(auto &oo : entries) {
-            oo->objectData.erase(
-                    remove_if(oo->objectData.begin(), oo->objectData.end(),
-                              [data](const Entry &entry) { return entry.id == data; }),
-                    oo->objectData.end()
-            );
+            oo->deleteEntry(data);
         }
+        secondaryIndex.erase(data);
     }
 
     void insertIntoCell(int x, int y, int data) {
@@ -111,7 +109,26 @@ public:
             b->insert(data);
             grid[cellX][cellY].push_back(b);
         }
-        secondaryIndex.emplace_back(&grid[cellX][cellY], grid[cellX][cellY].back(), data);
+        SecondaryEntry minieentrie(&grid[cellX][cellY], grid[cellX][cellY].back(), data);
+        secondaryIndex[data] = minieentrie;
+    }
+
+    SecondaryEntry* SearchbyIS(int idx){
+        auto it = secondaryIndex.find(idx);
+        return (it != secondaryIndex.end()) ? &it->second : nullptr;
+    }
+
+    void printIndexSecondary(){
+        for(auto &i : secondaryIndex){
+            cout << "*******************" << endl;
+            cout << " oid : " << i.second.oid << endl;
+            cout << " Index : " << i.second.index << endl;
+            cout << " size :  "<< i.second.ptr1->entries << endl;
+            for(auto &iem : i.second.ptr1->objectData ){
+                cout << "ID " << iem.id << endl;
+            }
+            cout << "*******************" << endl;
+        }
     }
 
     void printGrid() const {
@@ -130,6 +147,15 @@ public:
                 }
                 cout << "---------------------------- " << endl;
                 std::cout << std::endl;
+            }
+        }
+    }
+    void cleanup() {
+        for (auto& row : grid) {
+            for (auto& layer : row) {
+                for (auto& bucket : layer) {
+                    delete bucket;
+                }
             }
         }
     }
