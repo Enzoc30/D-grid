@@ -31,18 +31,23 @@ struct Entry {
 };
 
 struct Bucket {
+    size_t size;
+    size_t entries;
+    vector<Entry> objectData;
+    Bucket(size_t _size){
+        size = _size;
+        entries = 0;
 
-    vector<Entry> obejectData ;
-
-    Bucket(int data) {
-        Entry entry(data);
-        obejectData.emplace_back(entry);
     }
-
-    Bucket(const Entry& entry){
-        obejectData.emplace_back(entry);
+    bool insert(int data){
+        if(objectData.size() != size) {
+            objectData.emplace_back(data);
+            entries++;
+            return true;
+        }
+        else
+            return false;
     }
-
 };
 
 #endif //D_GRID_BUCKET_H

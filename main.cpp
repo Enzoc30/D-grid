@@ -1,8 +1,8 @@
 #include <iostream>
 #include <random>
-#include "Grid.h"
+#include "uGrid.h"
 
-void insertRandomPoint(Grid& grid) {
+void insertRandomPoint(uGrid& grid) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> disCoord(0, grid.getgridSize() - 1);
@@ -19,9 +19,9 @@ void insertRandomPoint(Grid& grid) {
 
 int main() {
 
-    Grid myGrid(100, 10, 5);
+    uGrid myGrid(100, 10, 3);
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 555; ++i) {
         insertRandomPoint(myGrid);
     }
 
