@@ -3,30 +3,33 @@
 #include <cassert>
 #include <cstdint>
 #include <iostream>
-#include "Bucket.h"
+#include <memory>
 #include <vector>
-#include "unordered_map"
+#include <unordered_map>
 #include <algorithm>
+#include <list>
+
+#include "Entry.hpp"
 
 using namespace std;
 
 class uGrid {
 private:
     using entry_id = uint64_t;
-    using grid_element = std::vector<Bucket>;
+    using Bucket = std::vector<Entry>;
+    using grid_element = std::list<Bucket>;
 
     struct SecondaryEntry {
-      Bucket* p_bucket;
       grid_element* p_grid_cell;
-      int index;
-      int oid;
+      Bucket* p_bucket;
+      uint32_t index_in_bucket;
     };
 
 private:
     Point const m_lower_limit;
     Point const m_upper_limit;
 
-    uint32_t const m_cell_size;
+    double const m_cell_size;
     uint32_t const m_n_cells;
     uint32_t const m_bucket_size;
 
@@ -35,11 +38,11 @@ private:
     double max_pos_y;
     double max_neg_y;
 
-    vector<vector<grid_element>> grid;
-    unordered_map<entry_id, SecondaryEntry> secondaryIndex;
+    vector<vector<grid_element>> m_grid;
+    unordered_map<entry_id, SecondaryEntry> m_secondary_index;
 
 public:
-    auto getGrid(){return grid;}
+    auto getGrid(){return m_grid;}
 
     uint32_t calculate_size_number() {
         double x_amplitude = m_upper_limit.getX() - m_lower_limit.getX();
@@ -56,18 +59,18 @@ public:
      * lower_limit: The leftmost|lowermost point in the area
      * upper_limit: The rightmost|uppermost point in the area
      * */
-    uGrid(uint32_t cell_size, uint32_t bucket_size, Point lower_limit, Point upper_limit)
+    uGrid(double cell_size, uint32_t bucket_size, Point lower_limit, Point upper_limit)
         : m_lower_limit(lower_limit),
           m_upper_limit(upper_limit),
           m_cell_size(cell_size),
           m_n_cells(calculate_size_number()),
           m_bucket_size(bucket_size),
-          max_pos_x(0),
-          max_neg_x(0),
-          max_pos_y(0),
-          max_neg_y(0)
+          max_pos_x(0.0),
+          max_neg_x(0.0),
+          max_pos_y(0.0),
+          max_neg_y(0.0)
     {
-        grid.resize(m_n_cells, vector<grid_element>(m_n_cells));
+        m_grid.resize(m_n_cells, vector<grid_element>(m_n_cells));
     }
 
     void localUpdate(Entry newEntry) {
