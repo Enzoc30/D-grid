@@ -87,7 +87,7 @@ public:
         }
     }
 
-    double maxVelocity(){
+    /*double maxVelocity(){
         double maxi = -1e9;
         for(auto &i : grid ){
             for(auto &j : i){
@@ -100,7 +100,7 @@ public:
             }
         }
         return maxi;
-    }
+    }*/
 
 
     void deleteFromCell(SecondaryEntry &e) {
@@ -160,10 +160,10 @@ public:
 
         //Definimos las bordes de S'
         //to-do -> ARREGLAR POR VELOCIDADES INDIVIDUALES POR LADO (NSEW)
-        minX += tq * maxVelocity();
-        minY += tq * maxVelocity();
-        maxX += tq * maxVelocity();
-        maxY += tq * maxVelocity();
+        minX += tq * 20;
+        minY += tq * 20;
+        maxX += tq * 20;
+        maxY += tq * 20;
         return {Point(minX,minY),Point(maxX,maxY)}; //coordenadas de ventana ST
     }
 
@@ -205,6 +205,7 @@ public:
         for (auto candidate : candidates){
             if (entryInWindow(candidate,tq,Sp.first,Sp.second)){
                 answers.push_back(candidate);
+                cout << candidate.p.getX() << " " << candidate.p.getY() << endl;
             }
         }
         return answers; // puntos rojos
