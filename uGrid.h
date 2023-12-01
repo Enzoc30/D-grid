@@ -25,9 +25,9 @@ private:
     };
 
 private:
-    int const gridSize;
-    int const cellSize;
-    int const bucketSize;
+    uint32_t const m_grid_size;
+    uint32_t const m_cell_size;
+    uint32_t const m_bucket_size;
     double maxiVel;
 
     vector<vector<grid_element>> grid;
@@ -36,16 +36,18 @@ private:
 public:
     auto getGrid(){return grid;}
 
-    uGrid() : gridSize(0), cellSize(0), bucketSize(0) {};
-    uGrid(Point ll, Point llis, double cell, int bucketSizes)
-            : gridSize(), cellSize(cell), bucketSize(bucketSizes) ,minVel(1e9+1.0,1e9+1.0), maxiVel(-1e9+1.0,-1e9+1.0){
+    uGrid(Point ll, Point llis, uint32_t cell, uint32_t bucket)
+        : m_grid_size(area),
+          m_cell_size(cell),
+          m_bucket_size(bucket)
+    {
         double limxx = abs(ll.getX() - llis.getX()) ;
         double limyy = abs(ll.getY() - llis.getY()) ;
+
         int numCells = ceil(max(limxx,limyy)/cell);
-        gridSize = numCells * cell;
-
-        grid.resize(numCells, vector<vector<Bucket*>>(numCells));
-
+        int numCells = m_grid_size / m_cell_size;
+        grid.resize(numCells, vector<grid_element>(numCells));
+        maxiVel = -1e9;
     }
 
     vector<Bucket*> getCell(double x, double y) const {
