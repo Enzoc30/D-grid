@@ -143,11 +143,8 @@ public:
         updating_entry.v = new_entry.v;
     }
 
-    Point getMaxVel() const{
-        return maxiVel;
-    }
-    Point getMinVel() const{
-        return minVel;
+    double maxVelocity(){
+        return max({max_neg_x, max_pos_x, max_neg_y, max_neg_x});
     }
 
     void insertOrUpdate(Entry & e){
