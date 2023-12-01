@@ -60,9 +60,9 @@ public:
         maxiVel = -1e9;
     }
 
-    vector<Bucket*> getCell(int x, int y) const {
-        int cellX = x / cellSize;
-        int cellY = y / cellSize;
+    vector<Bucket*> getCell(double x, double y) const {
+        int cellX = floor(x/cellSize);
+        int cellY = floor(y/cellSize);
         return grid[cellX][cellY];
     }
 
@@ -87,7 +87,7 @@ public:
         for(auto &i : grid ){
             for(auto &j : i){
                 for(auto &k : j){
-                    double z = k->searchmaxvelo();
+                    double z = k->getMaxVelocity();
                     if(maxi < z){
                         maxi = z;
                     }
@@ -131,6 +131,54 @@ public:
     SecondaryEntry* SearchbyIS(int idx){
         auto it = secondaryIndex.find(idx);
         return (it != secondaryIndex.end()) ? &it->second : nullptr;
+    }
+
+    //return elements of grids
+
+    //
+
+    pair<Point,Point> enlargeS(Point q1, Point q2, double tq){
+        //Definimos los bordes de S
+        double minX = min(q1.getX(),q2.getX());
+        double minY = min(q1.getY(),q2.getY());
+        double maxX = max(q1.getX(),q2.getX());
+        double maxY = max(q1.getY(),q2.getY());
+
+        //Definimos las bordes de S'
+        //to-do -> ARREGLAR POR VELOCIDADES INDIVIDUALES POR LADO (NSEW)
+        minX += tq * maxVelocity();
+        minY += tq * maxVelocity();
+        maxX += tq * maxVelocity();
+        maxY += tq * maxVelocity();
+        return {Point(minX,minY),Point(maxX,maxY)};
+    }
+
+    vector<Entry> rangeQuery(Point q1, Point q2){
+        vector<Entry> result;
+        double minX = q1.getX();
+        double minY = q1.getY();
+        double maxX = q2.getX();
+        double maxY = q2.getY();
+
+        //Definimos ST -> minimum rectangle with grid cell boundaries containing S
+        for (auto x=minX; x<=maxX; x+=cellSize){ //iterando en ST
+            for (auto y=minY; y<=maxY; y+=cellSize){
+                auto cell = getCell(x,y); //están en S' ahora
+                for (auto bucket : cell){
+                    for (auto entry : bucket->objectData) {
+                        result.push_back(entry); 
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+
+    vector<Entry> predictiveRangeQuery(Point q1, Point q2, double tq){
+        pair<Point,Point> Sp = enlargeS(q1,q2,tq);
+        vector<Entry> candidates = rangeQuery(Sp.first, Sp.second);
+        //to-do -> evaluar candidate set
     }
 
     void printIndexSecondary(){

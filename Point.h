@@ -16,19 +16,19 @@
 class Point {
 private:
     int objectID;
-    std::pair<int, int> coordinates;
+    std::pair<double, double> coordinates;
 
 public:
-    Point(int x, int y) : coordinates(x, y), objectID(-1) {};
+    Point(double x, double y) : coordinates(x, y), objectID(-1) {};
     Point() = default;
 
-    void setx(int x) { coordinates.first = x; }
-    void sety(int y) { coordinates.second = y; }
-    void setPoint(const std::pair<int, int> &other) { coordinates = other; }
+    void setx(double x) { coordinates.first = x; }
+    void sety(double y) { coordinates.second = y; }
+    void setPoint(const std::pair<double, double> &other) { coordinates = other; }
 
-    int getX() const { return coordinates.first; }
-    int getY() const { return coordinates.second; }
-    std::pair<int, int> getPoint() { return coordinates ; }
+    double getX() const { return coordinates.first; }
+    double getY() const { return coordinates.second; }
+    std::pair<double, double> getPoint() { return coordinates ; }
 
 
     Point& operator=(const Point& other) {
@@ -56,12 +56,12 @@ public:
         return result;
     }
 
-    Point operator*(int scalar) const {
+    Point operator*(double scalar) const {
         Point result(coordinates.first * scalar, coordinates.second * scalar);
         return result;
     }
 
-    Point operator/(int scalar) const {
+    Point operator/(double scalar) const {
         Point result(coordinates.first / scalar, coordinates.second / scalar);
         return result;
     }
@@ -78,13 +78,13 @@ public:
         return *this;
     }
 
-    Point& operator*=(int scalar) {
+    Point& operator*=(double scalar) {
         coordinates.first *= scalar;
         coordinates.second *= scalar;
         return *this;
     }
 
-    Point& operator/=(int scalar) {
+    Point& operator/=(double scalar) {
         coordinates.first /= scalar;
         coordinates.second /= scalar;
         return *this;

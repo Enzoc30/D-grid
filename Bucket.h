@@ -53,7 +53,7 @@ struct Bucket {
 
     }
 
-    double searchmaxvelo(){
+    double getMaxVelocity(){
         double u = -1e9;
         for(auto &i : objectData){
             if(u < i.velocity){
