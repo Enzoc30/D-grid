@@ -1,5 +1,5 @@
 CMakeLists.txt
 cmake-build-debug
 .idea/
-Data.csv
 .vscode
+build
