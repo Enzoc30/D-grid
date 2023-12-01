@@ -61,6 +61,10 @@ public:
         return result;
     }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 68a66b0 (init)
     Point operator/(double scalar) const {
         Point result(coordinates.first / scalar, coordinates.second / scalar);
         return result;

@@ -39,25 +39,30 @@ struct SecondaryEntry{
 class uGrid {
 private:
 
-    int gridSize;
-    int cellSize;
+    double gridSize;
+    double cellSize;
     int bucketSize;
-    double maxiVel;
+    Point maxiVel;
+    Point minVel;
     vector<vector<vector<Bucket*>>> grid;
     unordered_map<int,SecondaryEntry> secondaryIndex;
 
 public:
-    int getgridSize() const{return gridSize;}
-    int getcellSize() const {return cellSize;}
+    double getgridSize() const{return gridSize;}
+    double getcellSize() const {return cellSize;}
 
     auto getGrid(){return grid;}
 
     uGrid() : gridSize(0), cellSize(0), bucketSize(0) {};
-    uGrid(int area, int cell, int bucket)
-            : gridSize(area), cellSize(cell), bucketSize(bucket) {
-        int numCells = gridSize / cellSize;
+    uGrid(Point ll, Point llis, double cell, int bucketSizes)
+            : gridSize(), cellSize(cell), bucketSize(bucketSizes) ,minVel(1e9+1.0,1e9+1.0), maxiVel(-1e9+1.0,-1e9+1.0){
+        double limxx = abs(ll.getX() - llis.getX()) ;
+        double limyy = abs(ll.getY() - llis.getY()) ;
+        int numCells = ceil(max(limxx,limyy)/cell);
+        gridSize = numCells * cell;
+
         grid.resize(numCells, vector<vector<Bucket*>>(numCells));
-        maxiVel = -1e9;
+
     }
 
     vector<Bucket*> getCell(double x, double y) const {
@@ -97,14 +102,25 @@ public:
         return maxi;
     }
 
+
     void deleteFromCell(SecondaryEntry &e) {
         e.ptr1->deleteEntry(e.oid);
         secondaryIndex.erase(e.oid);
-        maxiVel =  maxVelocity();
+//        maxVelocity();
     }
 
-    double getMaxVel() const{
+    Point getMaxVel() const{
         return maxiVel;
+    }
+    Point getMinVel() const{
+        return minVel;
+    }
+
+    void insertOrUpdate(Entry & e){
+        if (SearchbyIS(e.id) == nullptr)
+            insertIntoCell(e);
+        else
+            localUpdate(e);
     }
 
     void insertIntoCell(Entry &data) {
@@ -116,16 +132,14 @@ public:
             grid[cellX][cellY].push_back(b);
         }
 
-        auto ins = grid[cellX][cellY].back()->insert(data.id);
+        auto ins = grid[cellX][cellY].back()->insert(data);
         if(!ins){
             Bucket* b = new Bucket(bucketSize);
-            b->insert(data.id);
+            b->insert(data);
             grid[cellX][cellY].push_back(b);
         }
         SecondaryEntry minieentrie(&grid[cellX][cellY], grid[cellX][cellY].back(), data.id);
         secondaryIndex[data.id] = minieentrie;
-
-        maxiVel = max(maxiVel, data.velocity);
     }
 
     SecondaryEntry* SearchbyIS(int idx){

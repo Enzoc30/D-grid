@@ -13,22 +13,20 @@ private:
     uGrid u2;
     double dt;
     double actualTime;
-
+    double maxVeloX;
+    double maxVeloY;
+    double minVeloX;
+    double minVeloY;
 public:
-    timePartition(double _dt, int area, int cell, int bucket)
-            : dt(_dt), actualTime(0), u1(uGrid(area, cell, bucket)), u2(uGrid(area, cell, bucket)) {}
+    timePartition(double _dt, Point limiS, Point limitI ,int cell, int bucket)
+            : dt(_dt), actualTime(0), u1(uGrid(limiS, limitI , cell, bucket)), u2(uGrid(limiS, limitI, cell, bucket)) {}
+
 
     void update(Entry e) {
         if (static_cast<int>(e.time / dt) % 2) {
-            if (u1.SearchbyIS(e.id) == nullptr)
-                u1.insertIntoCell(e);
-            else
-                u1.localUpdate(e);
+            u1.insertOrUpdate(e);
         } else {
-            if (u2.SearchbyIS(e.id) == nullptr)
-                u2.insertIntoCell(e);
-            else
-                u2.localUpdate(e);
+            u2.insertOrUpdate(e);
         }
 
         if (static_cast<int>(e.time / dt) % 2 != static_cast<int>(actualTime / dt) % 2) {

@@ -10,6 +10,7 @@
 #include <vector>
 #include <algorithm>
 #include "Point.h"
+#include <list>
 #include "params.h"
 
 
@@ -29,17 +30,14 @@ struct Entry {
     int id;
     Point p;
     Point v;
-    double velocity;
     bool flag;
     double time;
     Entry(int data) : id(data), p(0,0), v(0,0), flag(false) {};
     Entry(int x, int y, int data) : id(data), p(x,y), v(0,0), flag(false) {};
 
-    Entry(int id_, double t, int lat, int lon, int sx, int sy)
+    Entry(int id_, double t, double lat, double lon, int sx, int sy)
             : id(id_), time(t), p(lat, lon), v(sx,sy) {};
 
-    Entry(int id_, double t, int lat, int lon, int sx, int sy, double velo)
-            : id(id_), time(t), p(lat, lon), v(sx, sy), velocity(velo), flag(false) {};
 
 };
 
@@ -47,26 +45,47 @@ struct Bucket {
     size_t size;
     size_t entries;
     vector<Entry> objectData;
-    Bucket(size_t _size){
-        size = _size;
-        entries = 0;
+//    Point minPoint;
+//    Point maxPoint;
 
+    Bucket(size_t _size) : size(_size), entries(0) {}
+
+    Point seachminvelo(){
+        double vv = 1e9;
+        double uu = 1e9;
+        for(auto& i : objectData){
+//            if(vv > i.p.getY()){
+//                vv = i.v.getY(minPoint);
+//            }
+//            if(vv > i.p.getY()){
+//                vv = i.v.getY();
+//            }
+        }
+        return {uu,vv};
     }
 
-    double getMaxVelocity(){
-        double u = -1e9;
+    Point searchmaxvelo(){
+        double uu = -1e9;
+        double vv = -1e9;
         for(auto &i : objectData){
-            if(u < i.velocity){
-                u = i.velocity;
-            }
+//            if(uu < i.p.getX()){
+//                uu = i.v.getX();
+//            }
+//            if(vv < i.p.getY()){
+//                vv = i.v.getY();
+//            }
         }
-        return u;
+        return {uu, vv };
     }
 
     bool insert(Entry e){
         if(objectData.size() != size) {
             objectData.push_back(e);
             entries++;
+//            minPoint.setx(std::min(minPoint.getX(), e.p.getX()));
+//            minPoint.sety(std::min(minPoint.getY(), e.p.getY()));
+//            maxPoint.setx( std::max(maxPoint.getX(), e.p.getX()));
+//            maxPoint.sety(std::max(maxPoint.getY(), e.p.getY()));
             return true;
         }
         else
