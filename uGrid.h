@@ -205,7 +205,7 @@ public:
         for (auto candidate : candidates){
             if (entryInWindow(candidate,tq,Sp.first,Sp.second)){
                 answers.push_back(candidate);
-                cout << candidate.p.getX() << " " << candidate.p.getY() << endl;
+                cout << candidate.id << " " << candidate.p.getX() << "," << candidate.p.getY() << endl;
             }
         }
         return answers; // puntos rojos
