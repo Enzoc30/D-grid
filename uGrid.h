@@ -1,19 +1,18 @@
 //
-// Created by enzoc on 13/11/23.
+// Created by enzoc on 30/11/23.
 //
 
-#ifndef D_GRID_GRID_H
-#define D_GRID_GRID_H
-
+#ifndef D_GRID_UGRID_H
+#define D_GRID_UGRID_H
 
 #include <iostream>
-#include "Point.h"
-#include <vector>
-#include "params.h"
 #include "Bucket.h"
+#include <vector>
 
-class Grid {
-private:
+using namespace std;
+
+
+class uGrid {
 
     int gridSize;
     int cellSize;
@@ -21,12 +20,13 @@ private:
 
     std::vector<std::vector<Bucket*>> grid;
 
+
 public:
     int getgridSize() const{return gridSize;}
     int getcellSize() const {return cellSize;}
 
     std::vector<std::vector<Bucket*>> getGrid(){return grid;}
-    Grid(int area, int cell, int bucket)
+    uGrid(int area, int cell, int bucket)
             : gridSize(area), cellSize(cell), bucketSize(bucket) {
         int numCells = gridSize / cellSize;
 
@@ -112,6 +112,12 @@ public:
         }
     }
 
+    // ---------------------------------------------------------------------------------------- //
+
+    // Index Secondary
+
+
+
     void cleanup() {
         for (auto& row : grid) {
             for (auto& bucket : row) {
@@ -126,4 +132,5 @@ public:
 };
 
 
-#endif //D_GRID_GRID_H
+
+#endif //D_GRID_UGRID_H
