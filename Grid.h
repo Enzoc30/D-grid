@@ -9,6 +9,7 @@
 #include <iostream>
 #include "Point.h"
 #include <vector>
+#include <algorithm>
 #include "params.h"
 #include "Bucket.h"
 
@@ -26,6 +27,7 @@ public:
     int getcellSize() const {return cellSize;}
 
     std::vector<std::vector<Bucket*>> getGrid(){return grid;}
+
     Grid(int area, int cell, int bucket)
             : gridSize(area), cellSize(cell), bucketSize(bucket) {
         int numCells = gridSize / cellSize;
@@ -41,12 +43,13 @@ public:
 
     void localUpdate(int oldX, int oldY, int newX, int newY, int data) {
         if (oldX == newX && oldY == newY) {
-            Bucket* currentBucket = grid[oldX / cellSize][oldY / cellSize];
-            while (currentBucket != nullptr) {
-                if (currentBucket->objectData == data) {
+            Bucket* currentBucket = getCell(oldX,oldY);
+            for(auto &entry : currentBucket->obejectData){
+                if(entry.id == data){
+                    Point newPoint(newX, newY);
+                    entry.p = newPoint;
                     break;
                 }
-                currentBucket = currentBucket->nextBucket;
             }
         } else {
             deleteFromCell(oldX, oldY, data);
@@ -58,42 +61,26 @@ public:
         int cellX = x / cellSize;
         int cellY = y / cellSize;
 
-        Bucket* currentBucket = grid[cellX][cellY];
-        Bucket* prevBucket = nullptr;
+        Bucket* entries = grid[cellX][cellY];
 
-        while (currentBucket != nullptr) {
-            if (currentBucket->objectData == data) {
-                if (prevBucket != nullptr) {
-                    prevBucket->nextBucket = currentBucket->nextBucket;
-                } else {
-                    grid[cellX][cellY] = currentBucket->nextBucket;
-                }
-
-                delete currentBucket;
-                break;
-            }
-
-            prevBucket = currentBucket;
-            currentBucket = currentBucket->nextBucket;
-        }
+        entries->obejectData.erase(
+                remove_if(entries->obejectData.begin(), entries->obejectData.end(),
+                          [data](const Entry& entry) {return entry.id == data ;}),
+                          entries->obejectData.end()
+                );
     }
 
     void insertIntoCell(int x, int y, int data) {
         int cellX = x / cellSize;
         int cellY = y / cellSize;
 
-        Bucket* newBucket = new Bucket(data);
-
         if (grid[cellX][cellY] == nullptr) {
-            grid[cellX][cellY] = newBucket;
+            grid[cellX][cellY] = new Bucket(data);
         } else {
-            Bucket* currentBucket = grid[cellX][cellY];
-            while (currentBucket->nextBucket != nullptr) {
-                currentBucket = currentBucket->nextBucket;
-            }
-
-            currentBucket->nextBucket = newBucket;
+            Entry newEntry(data);
+            grid[cellX][cellY]->obejectData.push_back(newEntry);
         }
+
     }
 
     void printGrid() const {
@@ -102,27 +89,18 @@ public:
                 std::cout << "Cell (" << i * cellSize << ", " << j * cellSize << "): ";
 
                 Bucket* currentBucket = grid[i][j];
-                while (currentBucket != nullptr) {
-                    std::cout << currentBucket->objectData << " ";
-                    currentBucket = currentBucket->nextBucket;
+                if(currentBucket != nullptr) {
+                    for (auto &entry: currentBucket->obejectData) {
+                        std::cout << "ID : " << entry.id << " - ";
+                    }
                 }
-
                 std::cout << std::endl;
+
             }
         }
     }
 
-    void cleanup() {
-        for (auto& row : grid) {
-            for (auto& bucket : row) {
-                while (bucket != nullptr) {
-                    Bucket* temp = bucket;
-                    bucket = bucket->nextBucket;
-                    delete temp;
-                }
-            }
-        }
-    }
+
 };
 
 

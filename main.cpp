@@ -31,7 +31,6 @@ int main() {
     insertRandomPoint(myGrid);  // Simula una inserción aleatoria
     myGrid.printGrid();
 
-    myGrid.cleanup();
 
     std::cout << "------------------------" << std::endl;
     return 0;
