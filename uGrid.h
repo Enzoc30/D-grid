@@ -164,7 +164,7 @@ public:
         minY += tq * maxVelocity();
         maxX += tq * maxVelocity();
         maxY += tq * maxVelocity();
-        return {Point(minX,minY),Point(maxX,maxY)};
+        return {Point(minX,minY),Point(maxX,maxY)}; //coordenadas de ventana ST
     }
 
     vector<Entry> rangeQuery(Point minC, Point maxC){
@@ -185,7 +185,7 @@ public:
                 }
             }
         }
-        return result;
+        return result; // puntos blancos
     }
 
     bool entryInWindow(const Entry& candidate, double tq, const Point& minC, const Point& maxC) {
@@ -207,6 +207,7 @@ public:
                 answers.push_back(candidate);
             }
         }
+        return answers; // puntos rojos
     }
 
     void printIndexSecondary(){
