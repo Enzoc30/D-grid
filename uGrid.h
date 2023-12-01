@@ -143,6 +143,9 @@ public:
             }
 
             first_bucket.pop_back();
+            if (first_bucket.size() == 0) {
+                old_cell.pop_front();
+            }
 
             // Insert it in new location
             auto [p_bucket, index_in_bucket] = insert_no_sindex(entry, new_cell);
