@@ -88,6 +88,23 @@ public:
             return;
         }
 
+        double speed_x = entry.v.getX();
+        double speed_y = entry.v.getY();
+
+        if (speed_x < 0) {
+            max_neg_x = std::min(speed_x, max_neg_x);
+        }
+        else {
+            max_pos_x = std::max(speed_x, max_pos_x);
+        }
+
+        if (speed_y < 0) {
+            max_neg_y = std::min(speed_y, max_neg_y);
+        }
+        else {
+            max_pos_y = std::max(speed_y, max_pos_y);
+        }
+
         grid_element& new_cell = m_grid.at(cell_x).at(cell_y);
 
         if (it == m_secondary_index.end()) {
