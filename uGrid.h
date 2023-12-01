@@ -147,40 +147,34 @@ public:
         return max({max_neg_x, max_pos_x, max_neg_y, max_neg_x});
     }
 
-    void insertOrUpdate(Entry & e){
-        if (SearchbyIS(e.id) == nullptr)
-            insertIntoCell(e);
-        else
-            localUpdate(e);
+    auto get_offset(Point const& p) -> std::pair<double, double> {
+        double x_offset = (p.getX() - m_lower_limit.getX());
+        double y_offset = (p.getY() - m_lower_limit.getY());
+
+        return {x_offset, y_offset};
     }
 
-    void insertIntoCell(Entry &data) {
-        int cellX = data.p.getX() / cellSize;
-        int cellY = data.p.getY() / cellSize;
+    auto cell_coords_for_offset(double dx, double dy) -> std::pair<uint32_t, uint32_t> {
+        uint32_t cell_x = dx / m_cell_size;
+        uint32_t cell_y = dy / m_cell_size;
 
-        if(grid[cellX][cellY].empty()){
-            Bucket* b = new Bucket(bucketSize);
-            grid[cellX][cellY].push_back(b);
+        return {cell_x, cell_y};
+    }
+
+    auto insert_no_sindex(Entry const& e, grid_element& cell)
+        -> std::pair<Bucket*, uint32_t> {
+        Bucket& first_bucket = cell.front();
+        if (first_bucket.size() == m_bucket_size) {
+            cell.push_front({});
+            Bucket& new_first_bucket = cell.front();
+            new_first_bucket.push_back(e);
+            return {&new_first_bucket, new_first_bucket.size() - 1};
         }
-
-        auto ins = grid[cellX][cellY].back()->insert(data);
-        if(!ins){
-            Bucket* b = new Bucket(bucketSize);
-            b->insert(data);
-            grid[cellX][cellY].push_back(b);
+        else {
+            first_bucket.push_back(e);
+            return {&first_bucket, first_bucket.size() - 1};
         }
-        SecondaryEntry minieentrie(&grid[cellX][cellY], grid[cellX][cellY].back(), data.id);
-        secondaryIndex[data.id] = minieentrie;
     }
-
-    SecondaryEntry* SearchbyIS(int idx){
-        auto it = secondaryIndex.find(idx);
-        return (it != secondaryIndex.end()) ? &it->second : nullptr;
-    }
-
-    //return elements of grids
-
-    //
 
     pair<Point,Point> enlargeS(Point q1, Point q2, double tq){
         //Definimos los bordes de S
@@ -199,40 +193,42 @@ public:
     }
 
     vector<Entry> rangeQuery(Point q1, Point q2){
-        vector<Entry> result;
         double minX = q1.getX();
         double minY = q1.getY();
         double maxX = q2.getX();
         double maxY = q2.getY();
 
+        vector<Entry> result;
+
         //Definimos ST -> minimum rectangle with grid cell boundaries containing S
-        for (auto x=minX; x<=maxX; x+=cellSize){ //iterando en ST
-            for (auto y=minY; y<=maxY; y+=cellSize){
-                auto cell = getCell(x,y); //están en S' ahora
-                for (auto bucket : cell){
-                    for (auto entry : bucket->objectData) {
-                        result.push_back(entry); 
-                    }
-                }
-            }
-        }
+        // for (auto x = minX; x <= maxX; x += cellSize) { //iterando en ST
+        //     for (auto y = minY; y<= maxY; y += cellSize) {
+        //         auto cell = m_grid.at(x).at(y);  // están en S' ahora
+        //         for (auto bucket : cell) {
+        //             for (auto entry : bucket) {
+        //                 result.push_back(entry);
+        //             }
+        //         }
+        //     }
+        // }
+
         return result;
     }
-
 
     vector<Entry> predictiveRangeQuery(Point q1, Point q2, double tq){
         pair<Point,Point> Sp = enlargeS(q1,q2,tq);
         vector<Entry> candidates = rangeQuery(Sp.first, Sp.second);
         //to-do -> evaluar candidate set
+
+        return {};
     }
 
     void printIndexSecondary(){
-        for(auto &i : secondaryIndex){
+        for(auto &i : m_secondary_index){
             cout << "*******************" << endl;
-            cout << " oid : " << i.second.oid << endl;
-            cout << " Index : " << i.second.index << endl;
-            cout << " size :  "<< i.second.ptr1->entries << endl;
-            for(auto &iem : i.second.ptr1->objectData ){
+            cout << " Index : " << i.second.index_in_bucket << endl;
+            cout << " size :  "<< i.second.p_bucket->size() << endl;
+            for(auto &iem : *i.second.p_bucket ){
                 cout << "ID " << iem.id << endl;
             }
             cout << "*******************" << endl;
@@ -240,19 +236,19 @@ public:
     }
 
     void printGrid() const {
-        for (int i = 0; i < grid.size(); ++i) {
-            for (int j = 0; j < grid[i].size(); ++j) {
-                std::cout << "Cell (" << i * cellSize << ", " << j * cellSize << "): ";
-                vector<Bucket*> currentBucket = grid[i][j];
+        for (int i = 0; i < m_grid.size(); ++i) {
+            for (int j = 0; j < m_grid[i].size(); ++j) {
+                std::cout << "Cell (" << i * m_cell_size << ", " << j * m_cell_size << "): ";
+                grid_element const& grid_e = m_grid[i][j];
                 cout << endl <<"---------------------------- " << endl;
-                for(auto &oo : currentBucket) {
-                    if (oo != nullptr) {
-                        for (auto &entry: oo->objectData) {
-                            std::cout << "ID : " << entry.id << " - ";
-                        }
+
+                for(Bucket const& b : grid_e) {
+                    for (Entry const& entry: b) {
+                        std::cout << "ID : " << entry.id << " - ";
                     }
                     std::cout << std::endl;
                 }
+
                 cout << "---------------------------- " << endl;
                 std::cout << std::endl;
             }
@@ -260,12 +256,12 @@ public:
     }
 
     void clear() {
-        for (auto& row : grid) {
+        for (auto& row : m_grid) {
             for (grid_element ge : row) {
                 ge.clear();
             }
         }
 
-        secondaryIndex.clear();
+        m_secondary_index.clear();
     }
 };
