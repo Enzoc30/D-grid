@@ -1,33 +1,46 @@
 #include <iostream>
 #include <random>
+#include <fstream>
+#include "sstream"
 #include "uGrid.h"
 
-void insertRandomPoint(uGrid& grid) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> disCoord(0, grid.getgridSize() - 1);
-
-    int randomX = disCoord(gen);
-    int randomY = disCoord(gen);
-
-    std::uniform_int_distribution<int> disData(15, 10000);
-    int randomData = disData(gen);
-
-    grid.insertIntoCell(randomX, randomY, randomData);
-}
-
-
 int main() {
+    std::ifstream file("/home/enzoc/CLionProjects/D-grid/Data.csv");
 
-    uGrid myGrid(100, 10, 8);
-
-    for (int i = 0; i < 5555; i++) {
-        insertRandomPoint(myGrid);
+    if (!file.is_open()) {
+        std::cerr << "Error al abrir el archivo." << std::endl;
+        return 1;
     }
 
-    std::cout << "Cuadrícula despues de la actualización:" << std::endl;
-    myGrid.printGrid();
+    std::vector<Entry> entries;
 
+    // Ignorar la primera línea si contiene encabezados
+    std::string line;
+    std::getline(file, line);
+    uGrid Grid(1000000,100000,20);
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string token;
+        std::vector<std::string> fields;
+
+        // Leer los campos separados por comas
+        while (std::getline(iss, token, ',')) {
+            fields.push_back(token);
+        }
+
+        // Extraer campos específicos y construir una Entry
+        int taxi_id = std::stoi(fields[0]);
+        std::string time = fields[1];
+        int latitude = std::stoi(fields[2]);
+        int longitude = std::stoi(fields[3]);
+        int speed_x = std::stoi(fields[5]);
+        int speed_y = std::stoi(fields[6]);
+
+        Entry pp (taxi_id, time, latitude, longitude, speed_x, speed_y);
+        Grid.insertIntoCell(pp);
+    }
+
+    Grid.printGrid();
 
     return 0;
 }

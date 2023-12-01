@@ -66,51 +66,54 @@ public:
         return grid[cellX][cellY];
     }
 
-    void localUpdate(int oldX, int oldY, int newX, int newY, int data) {
-        if (oldX == newX && oldY == newY) {
-            vector<Bucket*> currentBucket = getCell(oldX,oldY);
+    void localUpdate(Entry oldEntry, Entry newEntry) {
+
+        /*
+        if (oldEntry.p.getX() == newEntry.p.getX() && oldEntry.p.getY() == newEntry.p.getY()) {
+            vector<Bucket*> currentBucket = getCell(oldEntry.p.getX(),oldEntry.p.getY());
             for(auto &o : currentBucket) {
                 for (auto &entry: o->objectData) {
-                    if (entry.id == data) {
-                        Point newPoint(newX, newY);
+                    if (entry.id == newEntry.id) {
+                        Point newPoint(newEntry.p.getX(), newEntry.p.getY());
                         entry.p = newPoint;
                         break;
                     }
                 }
             }
         } else {
-            deleteFromCell(oldX, oldY, data);
-            insertIntoCell(newX, newY, data);
+            deleteFromCell(oldEntry);
+            insertIntoCell(newEntry);
         }
+         */
     }
 
-    void deleteFromCell(int x, int y, int data) {
-        int cellX = x / cellSize;
-        int cellY = y / cellSize;
+    void deleteFromCell(Entry &data) {
+        int cellX = data.p.getX() / cellSize;
+        int cellY = data.p.getY() / cellSize;
 
         vector<Bucket*> entries = grid[cellX][cellY];
         for(auto &oo : entries) {
-            oo->deleteEntry(data);
+            oo->deleteEntry(data.id);
         }
-        secondaryIndex.erase(data);
+        secondaryIndex.erase(data.id);
     }
 
-    void insertIntoCell(int x, int y, int data) {
-        int cellX = x / cellSize;
-        int cellY = y / cellSize;
+    void insertIntoCell(Entry &data) {
+        int cellX = data.p.getX() / cellSize;
+        int cellY = data.p.getY() / cellSize;
         if(grid[cellX][cellY].empty()){
             Bucket* b = new Bucket(bucketSize);
             grid[cellX][cellY].push_back(b);
         }
 
-        auto ins = grid[cellX][cellY].back()->insert(data);
+        auto ins = grid[cellX][cellY].back()->insert(data.id);
         if(!ins){
             Bucket* b = new Bucket(bucketSize);
-            b->insert(data);
+            b->insert(data.id);
             grid[cellX][cellY].push_back(b);
         }
-        SecondaryEntry minieentrie(&grid[cellX][cellY], grid[cellX][cellY].back(), data);
-        secondaryIndex[data] = minieentrie;
+        SecondaryEntry minieentrie(&grid[cellX][cellY], grid[cellX][cellY].back(), data.id);
+        secondaryIndex[data.id] = minieentrie;
     }
 
     SecondaryEntry* SearchbyIS(int idx){

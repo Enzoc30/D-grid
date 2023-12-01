@@ -27,7 +27,11 @@ struct Entry {
     Point p;
     Point v;
     bool flag;
-    Entry(int id) : id(id), p(0,0), v(0,0), flag(false) {};
+    string time;
+    Entry(int data) : id(data), p(0,0), v(0,0), flag(false) {};
+    Entry(int id_, std::string& t, int lat, int lon, int sx, int sy)
+            : id(id_), time(t), p(lat, lon), v(sx,sy) {}
+
 };
 
 struct Bucket {

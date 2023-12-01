@@ -183,7 +183,7 @@ Safe<T> max(const Safe<T>& a, const Safe<T>& b) {
     return Safe<T>::max(a, b);
 }
 
-using Type = Safe<float>;
+using in = Safe<float>;
 
 
 
