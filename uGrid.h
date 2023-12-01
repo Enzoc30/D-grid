@@ -12,45 +12,28 @@
 
 using namespace std;
 
-struct SecondaryEntry{
-    Bucket* ptr1;
-    vector<Bucket*>* ptr2;
-    int index;
-    int oid;
-    SecondaryEntry(){
-        ptr1 = nullptr;
-        ptr2 = nullptr;
-        index = 0;
-        oid = 0;
-    }
-    SecondaryEntry(vector<Bucket*>* gridcell, Bucket* bucket, int id){
-        ptr1 = bucket;
-        ptr2 = gridcell;
-        for (auto i = 0; i < bucket->objectData.size(); i++){
-            if(bucket->objectData[i].id == id){
-                index = i;
-                break;
-            }
-        }
-        oid = id;
-    }
-};
-
 class uGrid {
 private:
+    using entry_id = uint64_t;
+    using grid_element = std::vector<Bucket>;
 
-    double gridSize;
-    double cellSize;
-    int bucketSize;
-    Point maxiVel;
-    Point minVel;
-    vector<vector<vector<Bucket*>>> grid;
-    unordered_map<int,SecondaryEntry> secondaryIndex;
+    struct SecondaryEntry {
+      Bucket* p_bucket;
+      grid_element* p_grid_cell;
+      int index;
+      int oid;
+    };
+
+private:
+    int const gridSize;
+    int const cellSize;
+    int const bucketSize;
+    double maxiVel;
+
+    vector<vector<grid_element>> grid;
+    unordered_map<entry_id, SecondaryEntry> secondaryIndex;
 
 public:
-    double getgridSize() const{return gridSize;}
-    double getcellSize() const {return cellSize;}
-
     auto getGrid(){return grid;}
 
     uGrid() : gridSize(0), cellSize(0), bucketSize(0) {};
@@ -227,17 +210,14 @@ public:
             }
         }
     }
-    void cleanup() {
+
+    void clear() {
         for (auto& row : grid) {
-            for (auto& col : row) {
-                for (auto& bucket : col) {
-                    if (bucket != nullptr) {
-                        delete bucket;
-                    }
-                }
-                col.clear();
+            for (grid_element ge : row) {
+                ge.clear();
             }
         }
+
         secondaryIndex.clear();
     }
 };
