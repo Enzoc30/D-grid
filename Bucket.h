@@ -30,7 +30,14 @@ struct Entry {
     Point v;
     bool flag;
     double time;
+<<<<<<< HEAD
     Entry(int id) : id(id), p(0,0), v(0,0), flag(false) {};
+=======
+    Entry(int data) : id(data), p(0,0), v(0,0), flag(false) {};
+    Entry(int id_, double t, int lat, int lon, int sx, int sy)
+            : id(id_), time(t), p(lat, lon), v(sx,sy) {}
+
+>>>>>>> 216e0d8 (tempo)
 };
 
 struct Bucket {

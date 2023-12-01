@@ -15,7 +15,11 @@ private:
     double actualtime;
 public:
     timePartition(double _dt, int area, int cell, int bucket)
+<<<<<<< HEAD
         : dt(_dt), actualtime(0), u1(uGrid(area,cell,bucket)), u2(uGrid(area,cell,bucket)) {};
+=======
+            : dt(_dt), actualtime(0), u1(uGrid(area,cell,bucket)), u2(uGrid(area,cell,bucket)) {};
+>>>>>>> 216e0d8 (tempo)
 
     void update(Entry e){
         if(int(e.time/dt) % 2){
@@ -42,4 +46,8 @@ public:
 
 };
 
+<<<<<<< HEAD
 #endif //D_GRID_TIMEPARTITION_H
+=======
+#endif //D_GRID_TIMEPARTITION_H
+>>>>>>> 216e0d8 (tempo)
