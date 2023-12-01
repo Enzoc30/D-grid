@@ -136,11 +136,11 @@ public:
         }
     }
 
+    void localUpdate(Entry& updating_entry, Entry const& new_entry) {
+        assert(updating_entry.deleted_p == false);
 
-    void deleteFromCell(SecondaryEntry &e) {
-        e.ptr1->deleteEntry(e.oid);
-        secondaryIndex.erase(e.oid);
-//        maxVelocity();
+        updating_entry.p = new_entry.p;
+        updating_entry.v = new_entry.v;
     }
 
     Point getMaxVel() const{
