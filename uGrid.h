@@ -144,12 +144,16 @@ public:
     }
     void cleanup() {
         for (auto& row : grid) {
-            for (auto& layer : row) {
-                for (auto& bucket : layer) {
-                    delete bucket;
+            for (auto& col : row) {
+                for (auto& bucket : col) {
+                    if (bucket != nullptr) {
+                        delete bucket;
+                    }
                 }
+                col.clear();
             }
         }
+        secondaryIndex.clear();
     }
 };
 

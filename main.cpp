@@ -1,35 +1,12 @@
 #include <iostream>
 #include <random>
 #include "uGrid.h"
+#include <fstream>
+#include <sstream>
+#include "timePartition.h"
+void solve(){
 
-void insertRandomPoint(uGrid& grid) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> disCoord(0, grid.getgridSize() - 1);
-
-    int randomX = disCoord(gen);
-    int randomY = disCoord(gen);
-
-    std::uniform_int_distribution<int> disData(15, 10000);
-    int randomData = disData(gen);
-
-    grid.insertIntoCell(randomX, randomY, randomData);
-}
-
-
-int main() {
-
-    uGrid myGrid(100, 10, 8);
-
-    for (int i = 0; i < 5555; i++) {
-        insertRandomPoint(myGrid);
-    }
-
-    std::cout << "Cuadrícula despues de la actualización:" << std::endl;
-    myGrid.printGrid();
-
-<<<<<<< HEAD
-=======
+    ifstream file("/home/enzoc/CLionProjects/D-grid/Data.csv");
     // Ignorar la primera línea si contiene encabezados
     std::string line;
     std::getline(file, line);
@@ -60,7 +37,66 @@ int main() {
     }
 
     //Grid.printGrid();
->>>>>>> 216e0d8 (tempo)
 
+}
+
+std::vector<double> numerosAleatorios;
+
+void insertRandomPoint(timePartition& grid, int i) {
+    // Generador de números aleatorios
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Rangos para las coordenadas, velocidad, y tiempo
+    std::uniform_int_distribution<int> disCoord3(30, 200);
+    std::uniform_int_distribution<int> disCoord(50, 500);
+    std::uniform_real_distribution<double> disTime(0.0, 1000.0);
+    std::uniform_int_distribution<int> disSpeed(-50, 500);
+    std::uniform_int_distribution<int> disCoord4(30, 100);
+
+    // Generar valores aleatorios
+    int id = disCoord(gen);  // Usar coordenada aleatoria como ID
+    int lat = disCoord4(gen);
+    int lon = disCoord3(gen);
+    int speedX = disSpeed(gen);
+    int speedY = disSpeed(gen);
+//    cout << time << endl;
+    // Crear un nuevo Entry con valores aleatorios
+    //cout << numerosAleatorios[i] << endl;
+    Entry randomEntry(id, numerosAleatorios[i], lat, lon, speedX, speedY);
+
+    // Insertar el nuevo Entry en el timePartition
+    grid.update(randomEntry);
+}
+
+
+
+int main() {
+    timePartition myGrid (500.5,2530,100,5);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Crear un conjunto de números aleatorios (doubles)
+    std::uniform_real_distribution<double> dis(0.0, 1000.0);
+
+    for (int i = 0; i < 554; ++i) {
+        numerosAleatorios.push_back(dis(gen));
+    }
+    std::sort(numerosAleatorios.begin(), numerosAleatorios.end());
+
+    for (int i = 0; i < 554; ++i) {
+        insertRandomPoint(myGrid,i);
+
+//        myGrid.print();
+    }
+
+    std::cout << "Cuadrícula antes de la actualización:" << std::endl;
+    //myGrid.print();
+
+    insertRandomPoint(myGrid,524);  // Simula una inserción aleatoria
+    myGrid.print();
+
+//    myGrid.print();
+    std::cout << "------------------------" << std::endl;
     return 0;
 }
