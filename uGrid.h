@@ -153,12 +153,12 @@ public:
         return {Point(minX,minY),Point(maxX,maxY)};
     }
 
-    vector<Entry> rangeQuery(Point q1, Point q2){
+    vector<Entry> rangeQuery(Point minC, Point maxC){
         vector<Entry> result;
-        double minX = q1.getX();
-        double minY = q1.getY();
-        double maxX = q2.getX();
-        double maxY = q2.getY();
+        double minX = minC.getX();
+        double minY = minC.getY();
+        double maxX = maxC.getX();
+        double maxY = maxC.getY();
 
         //Definimos ST -> minimum rectangle with grid cell boundaries containing S
         for (auto x=minX; x<=maxX; x+=cellSize){ //iterando en ST
@@ -166,7 +166,7 @@ public:
                 auto cell = getCell(x,y); //están en S' ahora
                 for (auto bucket : cell){
                     for (auto entry : bucket->objectData) {
-                        result.push_back(entry); 
+                        result.push_back(entry);
                     }
                 }
             }
@@ -174,11 +174,25 @@ public:
         return result;
     }
 
+    bool entryInWindow(const Entry& candidate, double tq, const Point& minC, const Point& maxC) {
+        double x = candidate.p.getX() + candidate.v.getX()*tq;
+        double y = candidate.p.getY() + candidate.v.getY()*tq;
+        auto predicted = Point(x,y);
+
+        return (x >= minC.getX() && x <= maxC.getX()
+                 && y >= minC.getY() && y <= maxC.getY());
+    }
 
     vector<Entry> predictiveRangeQuery(Point q1, Point q2, double tq){
-        pair<Point,Point> Sp = enlargeS(q1,q2,tq);
+        pair<Point,Point> Sp = enlargeS(q1,q2,tq); //(minC, maxC)
         vector<Entry> candidates = rangeQuery(Sp.first, Sp.second);
-        //to-do -> evaluar candidate set
+        
+        vector<Entry> answers;
+        for (auto candidate : candidates){
+            if (entryInWindow(candidate,tq,Sp.first,Sp.second)){
+                answers.push_back(candidate);
+            }
+        }
     }
 
     void printIndexSecondary(){
