@@ -6,6 +6,7 @@
 #define D_GRID_BUCKET_H
 
 #include <iostream>
+#include <utility>
 #include <vector>
 #include "Point.h"
 #include "params.h"
@@ -43,18 +44,18 @@ struct Bucket {
         entries = 0;
 
     }
-    bool insert(int data){
+    bool insert(Entry e){
         if(objectData.size() != size) {
-            objectData.emplace_back(data);
+            objectData.push_back(e);
             entries++;
             return true;
         }
         else
             return false;
     }
-    bool deleteEntry(int id){
+    bool deleteEntry(Entry e){
         auto it = find_if(objectData.begin(), objectData.end(),
-                          [id](const Entry& entry) { return entry.id == id; });
+                          [e](Entry& entry) { return entry.id == e.id; });
         if (it != objectData.end()) {
             objectData.erase(it);
             entries--;

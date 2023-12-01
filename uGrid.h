@@ -4,7 +4,6 @@
 
 #ifndef D_GRID_UGRID_H
 #define D_GRID_UGRID_H
-
 #include <iostream>
 #include "Bucket.h"
 #include <vector>
@@ -53,6 +52,7 @@ public:
 
     auto getGrid(){return grid;}
 
+    uGrid() : gridSize(0), cellSize(0), bucketSize(0) {};
     uGrid(int area, int cell, int bucket)
             : gridSize(area), cellSize(cell), bucketSize(bucket) {
         int numCells = gridSize / cellSize;
@@ -66,11 +66,14 @@ public:
         return grid[cellX][cellY];
     }
 
-    void localUpdate(Entry oldEntry, Entry newEntry) {
-
-        /*
-        if (oldEntry.p.getX() == newEntry.p.getX() && oldEntry.p.getY() == newEntry.p.getY()) {
-            vector<Bucket*> currentBucket = getCell(oldEntry.p.getX(),oldEntry.p.getY());
+    void localUpdate(Entry newEntry) {
+        int cellX = newEntry.p.getX() / cellSize;
+        int cellY = newEntry.p.getY() / cellSize;
+        auto newgridcell = grid[cellX][cellY];
+        SecondaryEntry oldEntry = *SearchbyIS(newEntry.id);
+        auto oldgridcell = *oldEntry.ptr2;
+        if (oldgridcell == newgridcell) {
+            vector<Bucket*> currentBucket = oldgridcell;
             for(auto &o : currentBucket) {
                 for (auto &entry: o->objectData) {
                     if (entry.id == newEntry.id) {
@@ -81,10 +84,9 @@ public:
                 }
             }
         } else {
-            deleteFromCell(oldEntry);
+            oldEntry.ptr1->deleteEntry(oldEntry);
             insertIntoCell(newEntry);
         }
-         */
     }
 
     void deleteFromCell(Entry &data) {
@@ -106,10 +108,10 @@ public:
             grid[cellX][cellY].push_back(b);
         }
 
-        auto ins = grid[cellX][cellY].back()->insert(data.id);
+        auto ins = grid[cellX][cellY].back()->insert(data);
         if(!ins){
             Bucket* b = new Bucket(bucketSize);
-            b->insert(data.id);
+            b->insert(data);
             grid[cellX][cellY].push_back(b);
         }
         SecondaryEntry minieentrie(&grid[cellX][cellY], grid[cellX][cellY].back(), data.id);
@@ -163,7 +165,5 @@ public:
         }
     }
 };
-
-
 
 #endif //D_GRID_UGRID_H
