@@ -14,7 +14,6 @@ void insertRandomPoint(Grid& grid) {
     int randomData = disData(gen);
 
     grid.insertIntoCell(randomX, randomY, randomData);
-    //grid.printGrid();
 }
 
 
