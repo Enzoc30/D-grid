@@ -4,6 +4,8 @@
 
 #ifndef D_GRID_UGRID_H
 #define D_GRID_UGRID_H
+#include <cassert>
+#include <cstdint>
 #include <iostream>
 #include "Bucket.h"
 #include <vector>
@@ -25,10 +27,17 @@ private:
     };
 
 private:
-    uint32_t const m_grid_size;
+    Point const m_lower_limit;
+    Point const m_upper_limit;
+
     uint32_t const m_cell_size;
+    uint32_t const m_n_cells;
     uint32_t const m_bucket_size;
-    double maxiVel;
+
+    double max_pos_x;
+    double max_neg_x;
+    double max_pos_y;
+    double max_neg_y;
 
     vector<vector<grid_element>> grid;
     unordered_map<entry_id, SecondaryEntry> secondaryIndex;
@@ -36,24 +45,33 @@ private:
 public:
     auto getGrid(){return grid;}
 
-    uGrid(Point ll, Point llis, uint32_t cell, uint32_t bucket)
-        : m_grid_size(area),
-          m_cell_size(cell),
-          m_bucket_size(bucket)
-    {
-        double limxx = abs(ll.getX() - llis.getX()) ;
-        double limyy = abs(ll.getY() - llis.getY()) ;
+    uint32_t calculate_size_number() {
+        double x_amplitude = m_upper_limit.getX() - m_lower_limit.getX();
+        double y_amplitude = m_upper_limit.getY() - m_lower_limit.getY();
 
-        int numCells = ceil(max(limxx,limyy)/cell);
-        int numCells = m_grid_size / m_cell_size;
-        grid.resize(numCells, vector<grid_element>(numCells));
-        maxiVel = -1e9;
+        assert(x_amplitude > 0);
+        assert(y_amplitude > 0);
+
+        double max_amplitude = max(x_amplitude, y_amplitude);
+        return ceil(max_amplitude / m_cell_size);
     }
 
-    vector<Bucket*> getCell(double x, double y) const {
-        int cellX = floor(x/cellSize);
-        int cellY = floor(y/cellSize);
-        return grid[cellX][cellY];
+    /**
+     * lower_limit: The leftmost|lowermost point in the area
+     * upper_limit: The rightmost|uppermost point in the area
+     * */
+    uGrid(uint32_t cell_size, uint32_t bucket_size, Point lower_limit, Point upper_limit)
+        : m_lower_limit(lower_limit),
+          m_upper_limit(upper_limit),
+          m_cell_size(cell_size),
+          m_n_cells(calculate_size_number()),
+          m_bucket_size(bucket_size),
+          max_pos_x(0),
+          max_neg_x(0),
+          max_pos_y(0),
+          max_neg_y(0)
+    {
+        grid.resize(m_n_cells, vector<grid_element>(m_n_cells));
     }
 
     void localUpdate(Entry newEntry) {
