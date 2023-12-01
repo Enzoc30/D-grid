@@ -43,8 +43,10 @@ public:
     void print() {
         if (static_cast<int>(actualTime / dt) % 2) {
             u1.printGrid();
+            cout << "Max Velocity : " << u1.getMaxVel( ) << endl;
         } else {
             u2.printGrid();
+            cout << "Max Velocity : " << u2.getMaxVel( ) << endl;
         }
     }
 };

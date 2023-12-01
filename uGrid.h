@@ -42,7 +42,7 @@ private:
     int gridSize;
     int cellSize;
     int bucketSize;
-
+    double maxiVel;
     vector<vector<vector<Bucket*>>> grid;
     unordered_map<int,SecondaryEntry> secondaryIndex;
 
@@ -57,7 +57,7 @@ public:
             : gridSize(area), cellSize(cell), bucketSize(bucket) {
         int numCells = gridSize / cellSize;
         grid.resize(numCells, vector<vector<Bucket*>>(numCells));
-
+        maxiVel = -1e9;
     }
 
     vector<Bucket*> getCell(int x, int y) const {
@@ -82,14 +82,35 @@ public:
         }
     }
 
+    double maxVelocity(){
+        double maxi = -1e9;
+        for(auto &i : grid ){
+            for(auto &j : i){
+                for(auto &k : j){
+                    double z = k->searchmaxvelo();
+                    if(maxi < z){
+                        maxi = z;
+                    }
+                }
+            }
+        }
+        return maxi;
+    }
+
     void deleteFromCell(SecondaryEntry &e) {
         e.ptr1->deleteEntry(e.oid);
         secondaryIndex.erase(e.oid);
+        maxiVel =  maxVelocity();
+    }
+
+    double getMaxVel() const{
+        return maxiVel;
     }
 
     void insertIntoCell(Entry &data) {
         int cellX = data.p.getX() / cellSize;
         int cellY = data.p.getY() / cellSize;
+
         if(grid[cellX][cellY].empty()){
             Bucket* b = new Bucket(bucketSize);
             grid[cellX][cellY].push_back(b);
@@ -103,6 +124,8 @@ public:
         }
         SecondaryEntry minieentrie(&grid[cellX][cellY], grid[cellX][cellY].back(), data.id);
         secondaryIndex[data.id] = minieentrie;
+
+        maxiVel = max(maxiVel, data.velocity);
     }
 
     SecondaryEntry* SearchbyIS(int idx){

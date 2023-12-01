@@ -63,7 +63,7 @@ void insertRandomPoint(timePartition& grid, int i) {
 //    cout << time << endl;
     // Crear un nuevo Entry con valores aleatorios
     //cout << numerosAleatorios[i] << endl;
-    Entry randomEntry(id, numerosAleatorios[i], lat, lon, speedX, speedY);
+    Entry randomEntry(id, numerosAleatorios[i], lat, lon, speedX, speedY,speedX+11.0);
 
     // Insertar el nuevo Entry en el timePartition
     grid.update(randomEntry);
