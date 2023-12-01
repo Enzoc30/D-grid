@@ -4,43 +4,48 @@
 #include <fstream>
 #include <sstream>
 #include "timePartition.h"
+
+Point ps(113.2,21.5);
+Point pi(115.2,23.5);
+//
 void solve(){
 
-    ifstream file("/home/enzoc/CLionProjects/D-grid/Data.csv");
-    // Ignorar la primera línea si contiene encabezados
-    std::string line;
-    std::getline(file, line);
-    uGrid Grid(15500,800,20);
-    long long cont = 0;
-    while (std::getline(file, line)) {
-        std::istringstream iss(line);
-        std::string token;
-        std::vector<std::string> fields;
-
-        // Leer los campos separados por comas
-        while (std::getline(iss, token, ',')) {
-            fields.push_back(token);
-        }
-
-        // Extraer campos específicos y construir una Entry
-        int taxi_id = std::stoi(fields[0]);
-        double time = std::stod(fields[1]);
-        int latitude = std::stoi(fields[2]);
-        int longitude = std::stoi(fields[3]);
-        int speed_x = std::stoi(fields[5]);
-        int speed_y = std::stoi(fields[6]);
-        cout << taxi_id << " " << latitude << " " << time << endl;
-        Entry pp (taxi_id, time, latitude, longitude, speed_x, speed_y);
-        Grid.insertIntoCell(pp);
-        if(cont == 15635555){break;}
-        cont++;
-    }
+//    ifstream file("/home/enzoc/CLionProjects/D-grid/Data.csv");
+//    // Ignorar la primera línea si contiene encabezados
+//    std::string line;
+//    std::getline(file, line);
+//    uGrid Grid(15500,ps,pi,800,20);
+//    long long cont = 0;
+//    while (std::getline(file, line)) {
+//        std::istringstream iss(line);
+//        std::string token;
+//        std::vector<std::string> fields;
+//
+//        // Leer los campos separados por comas
+//        while (std::getline(iss, token, ',')) {
+//            fields.push_back(token);
+//        }
+//
+//        // Extraer campos específicos y construir una Entry
+//        int taxi_id = std::stoi(fields[0]);
+//        double time = std::stod(fields[1]);
+//        int latitude = std::stoi(fields[2]);
+//        int longitude = std::stoi(fields[3]);
+//        int speed_x = std::stoi(fields[5]);
+//        int speed_y = std::stoi(fields[6]);
+//        cout << taxi_id << " " << latitude << " " << time << endl;
+//        Entry pp (taxi_id, time, latitude, longitude, speed_x, speed_y);
+//        Grid.insertIntoCell(pp);
+//        if(cont == 15635555){break;}
+//        cont++;
+//    }
 
     //Grid.printGrid();
 
 }
 
 std::vector<double> numerosAleatorios;
+
 
 void insertRandomPoint(timePartition& grid, int i) {
     // Generador de números aleatorios
@@ -63,16 +68,14 @@ void insertRandomPoint(timePartition& grid, int i) {
 //    cout << time << endl;
     // Crear un nuevo Entry con valores aleatorios
     //cout << numerosAleatorios[i] << endl;
-    Entry randomEntry(id, numerosAleatorios[i], lat, lon, speedX, speedY,speedX+11.0);
+    Entry randomEntry(id, numerosAleatorios[i], lat, lon, speedX, speedY);
 
     // Insertar el nuevo Entry en el timePartition
     grid.update(randomEntry);
 }
 
-
-
-int main() {
-    timePartition myGrid (500.5,2530,100,5);
+void solve2(){
+    timePartition myGrid (500.5,ps,pi,100,5);
     std::random_device rd;
     std::mt19937 gen(rd());
 
@@ -96,7 +99,46 @@ int main() {
     insertRandomPoint(myGrid,524);  // Simula una inserción aleatoria
     myGrid.print();
 
-//    myGrid.print();
-    std::cout << "------------------------" << std::endl;
-    return 0;
+}
+
+void disperseData(std::vector<Entry>& data, double latShift, double lonShift) {
+    for (auto& entry : data) {
+        entry.p.setx(entry.p.getX() + latShift);
+        entry.p.setx(entry.p.getX() + lonShift);;
+    }
+}
+
+int main() {
+    ifstream file("/home/enzoc/CLionProjects/D-grid/Data.csv");
+    // Ignorar la primera línea si contiene encabezados
+    std::string line;
+    std::getline(file, line);
+    uGrid Grid(ps,pi,1005.5,800);
+    long long cont = 0;
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string token;
+        std::vector<std::string> fields;
+
+        // Leer los campos separados por comas
+        while (std::getline(iss, token, ',')) {
+            fields.push_back(token);
+        }
+
+        // Extraer campos específicos y construir una Entry
+        int taxi_id = std::stoi(fields[0]);
+        double time = std::stod(fields[1]);
+        int latitude = std::stoi(fields[2]);
+        int longitude = std::stoi(fields[3]);
+        int speed_x = std::stoi(fields[5]);
+        int speed_y = std::stoi(fields[6]);
+        //cout << taxi_id << " " << latitude << " " << time << endl;
+        Entry pp (taxi_id, time, latitude, longitude, speed_x, speed_y);
+        Grid.insertIntoCell(pp);
+        if(cont == 15635555){break;}
+        cont++;
+    }
+
+    Grid.printGrid();
+
 }
