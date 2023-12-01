@@ -13,6 +13,8 @@
 #include "params.h"
 #include "Bucket.h"
 
+
+
 class Grid {
 private:
 
@@ -20,22 +22,21 @@ private:
     int cellSize;
     int bucketSize;
 
-    std::vector<std::vector<Bucket*>> grid;
+    vector<vector<vector<Bucket*>>> grid;
 
 public:
     int getgridSize() const{return gridSize;}
     int getcellSize() const {return cellSize;}
 
-    std::vector<std::vector<Bucket*>> getGrid(){return grid;}
+    auto getGrid(){return grid;}
 
     Grid(int area, int cell, int bucket)
             : gridSize(area), cellSize(cell), bucketSize(bucket) {
         int numCells = gridSize / cellSize;
-
-        grid.resize(numCells, std::vector<Bucket*>(numCells, nullptr));
+        grid.resize(numCells, vector<vector<Bucket*>>(numCells, vector<Bucket*>(bucketSize, nullptr)));
     }
 
-    Bucket* getCell(int x, int y) const {
+    vector<Bucket*> getCell(int x, int y) const {
         int cellX = x / cellSize;
         int cellY = y / cellSize;
         return grid[cellX][cellY];
@@ -43,12 +44,14 @@ public:
 
     void localUpdate(int oldX, int oldY, int newX, int newY, int data) {
         if (oldX == newX && oldY == newY) {
-            Bucket* currentBucket = getCell(oldX,oldY);
-            for(auto &entry : currentBucket->obejectData){
-                if(entry.id == data){
-                    Point newPoint(newX, newY);
-                    entry.p = newPoint;
-                    break;
+            vector<Bucket*> currentBucket = getCell(oldX,oldY);
+            for(auto &o : currentBucket) {
+                for (auto &entry: o->objectData) {
+                    if (entry.id == data) {
+                        Point newPoint(newX, newY);
+                        entry.p = newPoint;
+                        break;
+                    }
                 }
             }
         } else {
@@ -61,46 +64,44 @@ public:
         int cellX = x / cellSize;
         int cellY = y / cellSize;
 
-        Bucket* entries = grid[cellX][cellY];
-
-        entries->obejectData.erase(
-                remove_if(entries->obejectData.begin(), entries->obejectData.end(),
-                          [data](const Entry& entry) {return entry.id == data ;}),
-                          entries->obejectData.end()
-                );
+        vector<Bucket*> entries = grid[cellX][cellY];
+        for(auto &oo : entries) {
+            oo->objectData.erase(
+                    remove_if(oo->objectData.begin(), oo->objectData.end(),
+                              [data](const Entry &entry) { return entry.id == data; }),
+                    oo->objectData.end()
+            );
+        }
     }
 
     void insertIntoCell(int x, int y, int data) {
         int cellX = x / cellSize;
         int cellY = y / cellSize;
-
-        if (grid[cellX][cellY] == nullptr) {
-            grid[cellX][cellY] = new Bucket(data);
-        } else {
-            Entry newEntry(data);
-            grid[cellX][cellY]->obejectData.push_back(newEntry);
+        auto ins = grid[cellX][cellY].back()->insert(data);
+        if(!ins){
+            Bucket* b = new Bucket(bucketSize);
+            b->insert(data);
+            grid[cellX][cellY].push_back(b);
         }
-
     }
 
     void printGrid() const {
         for (int i = 0; i < grid.size(); ++i) {
             for (int j = 0; j < grid[i].size(); ++j) {
                 std::cout << "Cell (" << i * cellSize << ", " << j * cellSize << "): ";
-
-                Bucket* currentBucket = grid[i][j];
-                if(currentBucket != nullptr) {
-                    for (auto &entry: currentBucket->obejectData) {
-                        std::cout << "ID : " << entry.id << " - ";
+                vector<Bucket*> currentBucket = grid[i][j];
+                for(auto &oo : currentBucket) {
+                    if (oo != nullptr) {
+                        for (auto &entry: oo->objectData) {
+                            std::cout << "ID : " << entry.id << " - ";
+                        }
                     }
+                    std::cout << std::endl;
                 }
                 std::cout << std::endl;
-
             }
         }
     }
-
-
 };
 
 
