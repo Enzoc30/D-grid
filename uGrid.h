@@ -183,6 +183,10 @@ public:
 
     auto insert_no_sindex(Entry const& e, grid_element& cell)
         -> std::pair<Bucket*, uint32_t> {
+        if (cell.empty()) {
+            cell.push_back({});
+        }
+
         Bucket& first_bucket = cell.front();
         if (first_bucket.size() == m_bucket_size) {
             cell.push_front({});
