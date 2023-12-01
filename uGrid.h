@@ -73,35 +73,67 @@ public:
         m_grid.resize(m_n_cells, vector<grid_element>(m_n_cells));
     }
 
-    void localUpdate(Entry newEntry) {
-        int cellX = newEntry.p.getX() / cellSize;
-        int cellY = newEntry.p.getY() / cellSize;
-        auto newgridcell = grid[cellX][cellY];
-        SecondaryEntry oldEntry = *SearchbyIS(newEntry.id);
-        auto oldgridcell = *oldEntry.ptr2;
-        if (oldgridcell == newgridcell) {
-            Bucket* currentBucket = oldEntry.ptr1;
-            Point newPoint(newEntry.p.getX(), newEntry.p.getY());
-            currentBucket->objectData[oldEntry.index].p = newPoint;
-        } else {
-            deleteFromCell(oldEntry);
-            insertIntoCell(newEntry);
-        }
-    }
+    void insert_update(Entry const& entry) {
+        auto it = m_secondary_index.find(entry.id);
 
-    double maxVelocity(){
-        double maxi = -1e9;
-        for(auto &i : grid ){
-            for(auto &j : i){
-                for(auto &k : j){
-                    double z = k->getMaxVelocity();
-                    if(maxi < z){
-                        maxi = z;
-                    }
-                }
-            }
+        auto [x_offset, y_offset] = get_offset(entry.p);
+
+        if (x_offset < 0 || y_offset < 0) {
+            return;
         }
-        return maxi;
+
+        auto [cell_x, cell_y] = cell_coords_for_offset(x_offset, y_offset);
+
+        if (cell_x >= m_n_cells || cell_y >= m_n_cells) {
+            return;
+        }
+
+        grid_element& new_cell = m_grid.at(cell_x).at(cell_y);
+
+        if (it == m_secondary_index.end()) {
+            auto [p_bucket, index_in_bucket] = insert_no_sindex(entry, new_cell);
+            m_secondary_index[entry.id] = {&new_cell, p_bucket, index_in_bucket};
+            return;
+        }
+
+        SecondaryEntry& se = it->second;
+
+        if (se.p_grid_cell == std::addressof(new_cell)) {
+            localUpdate(se.p_bucket->at(se.index_in_bucket), entry);
+        }
+        else {
+            // Remove the element from its current cell
+            grid_element& old_cell = *se.p_grid_cell;
+
+            assert(!old_cell.empty());
+
+            Bucket& first_bucket = old_cell.front();
+
+            assert(!first_bucket.empty());
+
+            Entry& last_in_first_bucket = first_bucket.back();
+            Entry& removing_entry = se.p_bucket->at(se.index_in_bucket);
+
+            if (&last_in_first_bucket != &removing_entry) {
+                removing_entry.id = last_in_first_bucket.id;
+                removing_entry.p = last_in_first_bucket.p;
+                removing_entry.v = last_in_first_bucket.p;
+
+                SecondaryEntry& se_swapping = m_secondary_index.at(last_in_first_bucket.id);
+                assert(se_swapping.p_grid_cell == se.p_grid_cell);
+                se_swapping.p_bucket = se.p_bucket;
+                se_swapping.index_in_bucket = se.index_in_bucket;
+            }
+
+            first_bucket.pop_back();
+
+            // Insert it in new location
+            auto [p_bucket, index_in_bucket] = insert_no_sindex(entry, new_cell);
+
+            se.p_grid_cell = &new_cell;
+            se.index_in_bucket = index_in_bucket;
+            se.p_bucket = p_bucket;
+        }
     }
 
 
