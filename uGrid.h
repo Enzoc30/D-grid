@@ -1,9 +1,5 @@
-//
-// Created by enzoc on 30/11/23.
-//
+#pragma once
 
-#ifndef D_GRID_UGRID_H
-#define D_GRID_UGRID_H
 #include <cassert>
 #include <cstdint>
 #include <iostream>
@@ -241,5 +237,3 @@ public:
         secondaryIndex.clear();
     }
 };
-
-#endif //D_GRID_UGRID_H
