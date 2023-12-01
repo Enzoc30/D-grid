@@ -7,6 +7,7 @@
 
 double resize_factor = 40;
 double initial_x_min = 35, initial_x_max = 75, intial_y_min = 50, intial_y_max = 90, initial_radius = 20;
+const double X = 800, Y = 600;
 
 double distanceQ(const std::pair<double, double>& p1, const std::pair<double, double>& p2) {
     return std::sqrt(std::pow(p2.first - p1.first, 2) + std::pow(p2.second - p1.second, 2));
@@ -48,7 +49,21 @@ std::vector<std::pair<double, double>> generateEarthCoordinates(int numCoordinat
     return coordinates;
 }
 
+void drawRectangle(double x, double y){
+    sf::RectangleShape rectangle(sf::Vector2f(x, y));
+    rectangle.setPosition(0, 0);
+    rectangle.setOutlineThickness(2.0f);
+    rectangle.setOutlineColor(sf::Color::Red);
+    rectangle.setFillColor(sf::Color::Transparent);
+}
+
 void drawPoints(sf::RenderWindow& window, const std::vector<std::pair<double, double>>& points) {
+    std::filesystem::path interfacePath = std::filesystem::current_path().parent_path() / "Interface";
+    sf::Texture taxiTexture;
+    if(!taxiTexture.loadFromFile(interfacePath / "taxi.png")) {
+        std::cout << "Taxi image failure :c" << std::endl;
+        return;
+    }
     for (const auto& coord : points) {
         // Scale coordinates to fit within the window while maintaining proportion
         // float x = static_cast<float>(coord.first + 180.0) * window.getSize().x / 360.0;
@@ -60,6 +75,7 @@ void drawPoints(sf::RenderWindow& window, const std::vector<std::pair<double, do
         // Draw a small circle for each point
         sf::CircleShape pointShape(2.0);
         pointShape.setPosition(x, y);
+        pointShape.setTexture(&taxiTexture);
         pointShape.setFillColor(sf::Color::Blue);
 
         window.draw(pointShape);
@@ -109,12 +125,6 @@ int main(){
     sf::RenderWindow window(sf::VideoMode(800, 600), "Taxis all around the world!!!");
     std::vector<sf::Text> labels;
 
-    sf::Texture taxiTexture;
-    if(!taxiTexture.loadFromFile(interfacePath / "taxi.png")) {
-        std::cout << "Taxi image failure :c" << std::endl;
-        return -1;
-    }
-
     sf::Texture backgroundImage;
     if(!backgroundImage.loadFromFile(interfacePath / "purple.jpg")) {
         std::cout << "Street image failure :c" << std::endl;
@@ -157,7 +167,7 @@ int main(){
             if(event.type == sf::Event::TextEntered) {
                 for(auto& label : labels) {
                     // Asegurarse de que la etiqueta tenga el foco antes de permitir la entrada
-                    if (label.getGlobalBounds().contains(sf::Vector2f(event.text.unicode, event.text.unicode))) {
+                    if(label.getGlobalBounds().contains(sf::Vector2f(event.text.unicode, event.text.unicode))) {
                         // Concatenar el carácter a la etiqueta
                         label.setString(label.getString() + static_cast<char>(event.text.unicode));
                     }
