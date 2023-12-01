@@ -139,6 +139,10 @@ int main() {
         cont++;
     }
 
+    auto p1 = Point(15,15);
+    auto p2 = Point(15,15);
+    Grid.predictiveRangeQuery(p1,p2,10);
+
     Grid.printGrid();
 
 }
