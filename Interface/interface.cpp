@@ -9,6 +9,7 @@
 double resize_factor = 40;
 double initial_x_min = 35, initial_x_max = 75, intial_y_min = 50, intial_y_max = 90, initial_radius = 20;
 const double X = 800, Y = 600;
+double count_p1 = 50, count_p2 = 50, count_df = 0;
 std::filesystem::path interfacePath = std::filesystem::current_path().parent_path() / "Interface";
 
 double distanceQ(const std::pair<double, double>& p1, const std::pair<double, double>& p2) {
