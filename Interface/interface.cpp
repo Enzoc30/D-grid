@@ -4,10 +4,12 @@
 #include <random>
 #include <SFML/Graphics.hpp>
 #include <filesystem>
+// #include "uGrid.h"
 
 double resize_factor = 40;
 double initial_x_min = 35, initial_x_max = 75, intial_y_min = 50, intial_y_max = 90, initial_radius = 20;
 const double X = 800, Y = 600;
+std::filesystem::path interfacePath = std::filesystem::current_path().parent_path() / "Interface";
 
 double distanceQ(const std::pair<double, double>& p1, const std::pair<double, double>& p2) {
     return std::sqrt(std::pow(p2.first - p1.first, 2) + std::pow(p2.second - p1.second, 2));
@@ -82,40 +84,8 @@ void drawPoints(sf::RenderWindow& window, const std::vector<std::pair<double, do
     }
 }
 
-void drawInputBoxes(sf::RenderWindow& window, std::vector<sf::Text>& labels) {
-    sf::Vector2f boxSize(150.0, 30.0);
-    float margin = 10.0;
-    float startY = window.getSize().y - boxSize.y - margin;
-    std::filesystem::path interfacePath = std::filesystem::current_path().parent_path() / "Interface";
-
-    sf::Color yellowPastel(255, 255, 153);
-    sf::Color greenPastel(144, 238, 144);
-    sf::Font font;
-    if(!font.loadFromFile(interfacePath / "TirtoWritterRegular-Eajrl.ttf")) {
-        // Handle loading failure
-        std::cout << "Font loading failure :c" << std::endl;
-        return;
-    }
-    std::vector<std::string> notes = {"P1", "P2", "tf"};
-
-    for (int i = 0; i < 3; ++i) {
-        // Etiqueta
-        sf::Text label;
-        label.setFont(font);
-        label.setString(notes[i]);
-        // label.setString("Label " + std::to_string(i + 1));
-        label.setCharacterSize(16);
-        label.setFillColor(sf::Color::Black);
-        label.setPosition(margin + i * (boxSize.x + margin), startY - 20.0);
-        labels.push_back(label);
-        window.draw(label);
-
-        // Casilla de entrada
-        sf::RectangleShape inputBox(boxSize);
-        inputBox.setPosition(margin + i * (boxSize.x + margin), startY);
-        inputBox.setFillColor((i % 2 == 0) ? yellowPastel : greenPastel);
-        window.draw(inputBox);
-    }
+bool isMouseOverRect(const sf::Vector2f& mousePos, const sf::RectangleShape& rect) {
+    return rect.getGlobalBounds().contains(mousePos);
 }
 
 int main(){
@@ -124,6 +94,8 @@ int main(){
     auto query_result = rangeQueryRectangular(coordinates, {initial_x_min, intial_y_max}, {initial_x_max, intial_y_min});
     sf::RenderWindow window(sf::VideoMode(800, 600), "Taxis all around the world!!!");
     std::vector<sf::Text> labels;
+    std::vector<sf::Text> inputTexts;
+    std::vector<bool> activeInputs(3, false); 
 
     sf::Texture backgroundImage;
     if(!backgroundImage.loadFromFile(interfacePath / "purple.jpg")) {
@@ -164,20 +136,36 @@ int main(){
                 window.setView(view);
             }
 
-            if(event.type == sf::Event::TextEntered) {
-                for(auto& label : labels) {
-                    // Asegurarse de que la etiqueta tenga el foco antes de permitir la entrada
-                    if(label.getGlobalBounds().contains(sf::Vector2f(event.text.unicode, event.text.unicode))) {
-                        // Concatenar el carácter a la etiqueta
-                        label.setString(label.getString() + static_cast<char>(event.text.unicode));
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
+                
+                // Verificar si se hizo clic en alguna casilla de entrada
+                for (size_t i = 0; i < inputTexts.size(); ++i) {
+                    if (isMouseOverRect(mousePos, inputTexts[i])) {
+                        // Activar la casilla de entrada correspondiente
+                        activeInputs[i] = true;
+                    } else {
+                        // Desactivar las otras casillas de entrada
+                        activeInputs[i] = false;
                     }
                 }
             }
 
-            if(event.type == sf::Event::TextEntered){
-                playerInput +=event.text.unicode;
-                playerText.setString(playerInput);
+            // Capturar entrada del teclado
+            if (event.type == sf::Event::TextEntered) {
+                for (size_t i = 0; i < labels.size(); ++i) {
+                    // Asegurarse de que la etiqueta tenga el foco antes de permitir la entrada
+                    if (activeInputs[i]) {
+                        // Concatenar el carácter a la casilla de entrada
+                        inputTexts[i].setString(inputTexts[i].getString() + static_cast<char>(event.text.unicode));
+                    }
+                }
             }
+
+            // if(event.type == sf::Event::TextEntered){
+            //     playerInput +=event.text.unicode;
+            //     playerText.setString(playerInput);
+            // }
         }
 
         window.clear();
@@ -186,7 +174,7 @@ int main(){
 
         // Drawing taxis
         drawPoints(window, coordinates);
-        drawInputBoxes(window, labels);
+        drawInputBoxes(window, labels, inputTexts, activeInputs);
         /*
         for(const auto& coord : query_result){
             float x = static_cast<float>(coord.second + 180.0) * 2.0;

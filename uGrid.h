@@ -58,7 +58,7 @@ public:
             : gridSize(), cellSize(cell), bucketSize(bucketSizes) ,minVel(1e9+1.0,1e9+1.0), maxiVel(-1e9+1.0,-1e9+1.0){
         double limxx = abs(ll.getX() - llis.getX()) ;
         double limyy = abs(ll.getY() - llis.getY()) ;
-        int numCells = ceil(max(limxx,limyy)/cell);
+        int numCells = floor(max(limxx,limyy)/cell);
         gridSize = numCells * cell;
 
         grid.resize(numCells, vector<vector<Bucket*>>(numCells));
