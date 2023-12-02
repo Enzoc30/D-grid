@@ -223,19 +223,20 @@ public:
         double maxX = maxC.getX();
         double maxY = maxC.getY();
         
-        vector<Entry> result;
-
         //Definimos ST -> minimum rectangle with grid cell boundaries containing S
         bool flag = false;
-        for (auto x=minX; x<=maxX; x+=cellSize){ //iterando en ST
+        double limx = m_upper_limit.getX();
+        double limy = m_upper_limit.getY();
+        for (auto x=minX; x<=maxX; x+=m_cell_size){ //iterando en ST
+            for (auto y=minY; y<=maxY; y+=m_cell_size){
+                if (x > limx && y > limy) return result;
+                if (x > limx) x = limx;
+                if (y > limy) y = limy;
 
-            for (auto y=minY; y<=maxY; y+=cellSize){
-                if (x > limxx && y > limyy) return result;
-                if (x > limxx) x = limxx;
-                if (y > limyy) y = limyy;
-                auto cell = getCell(x,y); //están en S' ahora
+                auto [xC, yC] = cell_coords_for_offset(x,y);
+                auto const& cell = m_grid[xC][yC]; //están en S' ahora
                 for (auto bucket : cell){
-                    for (auto entry : bucket->objectData) {
+                    for (auto entry : bucket) {
                         result.push_back(entry);
                     }
                 }
