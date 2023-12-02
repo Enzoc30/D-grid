@@ -38,12 +38,13 @@ struct SecondaryEntry{
 
 class uGrid {
 private:
-
     double gridSize;
     double cellSize;
     int bucketSize;
     Point maxiVel;
     Point minVel;
+    double limxx;
+    double limyy;
     vector<vector<vector<Bucket*>>> grid;
     unordered_map<int,SecondaryEntry> secondaryIndex;
 
@@ -56,8 +57,8 @@ public:
     uGrid() : gridSize(0), cellSize(0), bucketSize(0) {};
     uGrid(Point ll, Point llis, double cell, int bucketSizes)
             : gridSize(), cellSize(cell), bucketSize(bucketSizes) ,minVel(1e9+1.0,1e9+1.0), maxiVel(-1e9+1.0,-1e9+1.0){
-        double limxx = abs(ll.getX() - llis.getX()) ;
-        double limyy = abs(ll.getY() - llis.getY()) ;
+        limxx = abs(ll.getX() - llis.getX()) ;
+        limyy = abs(ll.getY() - llis.getY()) ;
         int numCells = ceil(max(limxx,limyy)/cell);
         gridSize = numCells * cell;
 
@@ -175,8 +176,13 @@ public:
         double maxY = maxC.getY();
 
         //Definimos ST -> minimum rectangle with grid cell boundaries containing S
+        bool flag = false;
         for (auto x=minX; x<=maxX; x+=cellSize){ //iterando en ST
+
             for (auto y=minY; y<=maxY; y+=cellSize){
+                if (x > limxx && y > limyy) return result;
+                if (x > limxx) x = limxx;
+                if (y > limyy) y = limyy;
                 auto cell = getCell(x,y); //están en S' ahora
                 for (auto bucket : cell){
                     for (auto entry : bucket->objectData) {
@@ -198,8 +204,11 @@ public:
     }
 
     vector<Entry> predictiveRangeQuery(Point q1, Point q2, double tq){
+        cout << "1" << endl;
         pair<Point,Point> Sp = enlargeS(q1,q2,tq); //(minC, maxC)
+        cout << "2" << endl;
         vector<Entry> candidates = rangeQuery(Sp.first, Sp.second);
+        cout << "3" << endl;
         
         vector<Entry> answers;
         for (auto candidate : candidates){
@@ -208,6 +217,7 @@ public:
                 cout << candidate.id << " " << candidate.p.getX() << "," << candidate.p.getY() << endl;
             }
         }
+        cout << "4" << endl;
         return answers; // puntos rojos
     }
 
