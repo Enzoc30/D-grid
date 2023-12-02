@@ -204,11 +204,8 @@ public:
     }
 
     vector<Entry> predictiveRangeQuery(Point q1, Point q2, double tq){
-        cout << "1" << endl;
         pair<Point,Point> Sp = enlargeS(q1,q2,tq); //(minC, maxC)
-        cout << "2" << endl;
         vector<Entry> candidates = rangeQuery(Sp.first, Sp.second);
-        cout << "3" << endl;
         
         vector<Entry> answers;
         for (auto candidate : candidates){
@@ -217,7 +214,6 @@ public:
                 cout << candidate.id << " " << candidate.p.getX() << "," << candidate.p.getY() << endl;
             }
         }
-        cout << "4" << endl;
         return answers; // puntos rojos
     }
 

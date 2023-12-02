@@ -143,7 +143,7 @@ int main() {
 
     auto p1 = Point(200,200);
     auto p2 = Point(-100,-100);
-    Grid.predictiveRangeQuery(p1,p2,100);
+    Grid.predictiveRangeQuery(p1,p2,10);
 
     //Grid.printGrid();
 
