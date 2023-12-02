@@ -38,12 +38,13 @@ struct SecondaryEntry{
 
 class uGrid {
 private:
-
     double gridSize;
     double cellSize;
     int bucketSize;
     Point maxiVel;
     Point minVel;
+    double limxx;
+    double limyy;
     vector<vector<vector<Bucket*>>> grid;
     unordered_map<int,SecondaryEntry> secondaryIndex;
 
@@ -56,9 +57,9 @@ public:
     uGrid() : gridSize(0), cellSize(0), bucketSize(0) {};
     uGrid(Point ll, Point llis, double cell, int bucketSizes)
             : gridSize(), cellSize(cell), bucketSize(bucketSizes) ,minVel(1e9+1.0,1e9+1.0), maxiVel(-1e9+1.0,-1e9+1.0){
-        double limxx = abs(ll.getX() - llis.getX()) ;
-        double limyy = abs(ll.getY() - llis.getY()) ;
-        int numCells = floor(max(limxx,limyy)/cell);
+        limxx = abs(ll.getX() - llis.getX()) ;
+        limyy = abs(ll.getY() - llis.getY()) ;
+        int numCells = ceil(max(limxx,limyy)/cell);
         gridSize = numCells * cell;
 
         grid.resize(numCells, vector<vector<Bucket*>>(numCells));
@@ -87,7 +88,7 @@ public:
         }
     }
 
-    double maxVelocity(){
+    /*double maxVelocity(){
         double maxi = -1e9;
         for(auto &i : grid ){
             for(auto &j : i){
@@ -100,7 +101,7 @@ public:
             }
         }
         return maxi;
-    }
+    }*/
 
 
     void deleteFromCell(SecondaryEntry &e) {
@@ -160,11 +161,11 @@ public:
 
         //Definimos las bordes de S'
         //to-do -> ARREGLAR POR VELOCIDADES INDIVIDUALES POR LADO (NSEW)
-        minX += tq * maxVelocity();
-        minY += tq * maxVelocity();
-        maxX += tq * maxVelocity();
-        maxY += tq * maxVelocity();
-        return {Point(minX,minY),Point(maxX,maxY)};
+        minX += tq * 20;
+        minY += tq * 20;
+        maxX += tq * 20;
+        maxY += tq * 20;
+        return {Point(minX,minY),Point(maxX,maxY)}; //coordenadas de ventana ST
     }
 
     vector<Entry> rangeQuery(Point minC, Point maxC){
@@ -175,8 +176,13 @@ public:
         double maxY = maxC.getY();
 
         //Definimos ST -> minimum rectangle with grid cell boundaries containing S
+        bool flag = false;
         for (auto x=minX; x<=maxX; x+=cellSize){ //iterando en ST
+
             for (auto y=minY; y<=maxY; y+=cellSize){
+                if (x > limxx && y > limyy) return result;
+                if (x > limxx) x = limxx;
+                if (y > limyy) y = limyy;
                 auto cell = getCell(x,y); //están en S' ahora
                 for (auto bucket : cell){
                     for (auto entry : bucket->objectData) {
@@ -185,7 +191,7 @@ public:
                 }
             }
         }
-        return result;
+        return result; // puntos blancos
     }
 
     bool entryInWindow(const Entry& candidate, double tq, const Point& minC, const Point& maxC) {
@@ -205,8 +211,10 @@ public:
         for (auto candidate : candidates){
             if (entryInWindow(candidate,tq,Sp.first,Sp.second)){
                 answers.push_back(candidate);
+                cout << candidate.id << " " << candidate.p.getX() << "," << candidate.p.getY() << endl;
             }
         }
+        return answers; // puntos rojos
     }
 
     void printIndexSecondary(){

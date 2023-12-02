@@ -109,7 +109,7 @@ void disperseData(std::vector<Entry>& data, double latShift, double lonShift) {
 }
 
 int main() {
-    ifstream file("/home/enzoc/CLionProjects/D-grid/Data.csv");
+    ifstream file("./Data.csv");
     // Ignorar la primera línea si contiene encabezados
     std::string line;
     std::getline(file, line);
@@ -132,13 +132,19 @@ int main() {
         int longitude = std::stoi(fields[3]);
         int speed_x = std::stoi(fields[5]);
         int speed_y = std::stoi(fields[6]);
-        //cout << taxi_id << " " << latitude << " " << time << endl;
+        cout << taxi_id << " " << latitude << " " << time << endl;
         Entry pp (taxi_id, time, latitude, longitude, speed_x, speed_y);
         Grid.insertIntoCell(pp);
-        if(cont == 15635555){break;}
+        if(cont == 30000){break;}
         cont++;
     }
 
-    Grid.printGrid();
+    cout << "end" << endl;
+
+    auto p1 = Point(200,200);
+    auto p2 = Point(-100,-100);
+    Grid.predictiveRangeQuery(p1,p2,10);
+
+    //Grid.printGrid();
 
 }
