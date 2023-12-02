@@ -1,156 +1,204 @@
-//
-// Created by enzoc on 30/11/23.
-//
+#pragma once
 
-#ifndef D_GRID_UGRID_H
-#define D_GRID_UGRID_H
+#include <cassert>
+#include <cstdint>
 #include <iostream>
-#include "Bucket.h"
+#include <memory>
 #include <vector>
-#include "unordered_map"
+#include <unordered_map>
 #include <algorithm>
+#include <list>
+
+#include "Entry.hpp"
 
 using namespace std;
 
-struct SecondaryEntry{
-    Bucket* ptr1;
-    vector<Bucket*>* ptr2;
-    int index;
-    int oid;
-    SecondaryEntry(){
-        ptr1 = nullptr;
-        ptr2 = nullptr;
-        index = 0;
-        oid = 0;
-    }
-    SecondaryEntry(vector<Bucket*>* gridcell, Bucket* bucket, int id){
-        ptr1 = bucket;
-        ptr2 = gridcell;
-        for (auto i = 0; i < bucket->objectData.size(); i++){
-            if(bucket->objectData[i].id == id){
-                index = i;
-                break;
-            }
-        }
-        oid = id;
-    }
-};
-
 class uGrid {
 private:
-    double gridSize;
-    double cellSize;
-    int bucketSize;
-    Point maxiVel;
-    Point minVel;
-    double limxx;
-    double limyy;
-    vector<vector<vector<Bucket*>>> grid;
-    unordered_map<int,SecondaryEntry> secondaryIndex;
+    using entry_id = uint64_t;
+    using Bucket = std::vector<Entry>;
+    using grid_element = std::list<Bucket>;
+
+    struct SecondaryEntry {
+      grid_element* p_grid_cell;
+      Bucket* p_bucket;
+      uint32_t index_in_bucket;
+    };
+
+private:
+    Point const m_lower_limit;
+    Point const m_upper_limit;
+
+    double const m_cell_size;
+    uint32_t const m_n_cells;
+    uint32_t const m_bucket_size;
+
+    double max_pos_x;
+    double max_neg_x;
+    double max_pos_y;
+    double max_neg_y;
+
+    vector<vector<grid_element>> m_grid;
+    unordered_map<entry_id, SecondaryEntry> m_secondary_index;
 
 public:
-    double getgridSize() const{return gridSize;}
-    double getcellSize() const {return cellSize;}
+    auto getGrid(){return m_grid;}
 
-    auto getGrid(){return grid;}
+    uint32_t calculate_size_number() {
+        double x_amplitude = m_upper_limit.getX() - m_lower_limit.getX();
+        double y_amplitude = m_upper_limit.getY() - m_lower_limit.getY();
 
-    uGrid() : gridSize(0), cellSize(0), bucketSize(0) {};
-    uGrid(Point ll, Point llis, double cell, int bucketSizes)
-            : gridSize(), cellSize(cell), bucketSize(bucketSizes) ,minVel(1e9+1.0,1e9+1.0), maxiVel(-1e9+1.0,-1e9+1.0){
-        limxx = abs(ll.getX() - llis.getX()) ;
-        limyy = abs(ll.getY() - llis.getY()) ;
-        int numCells = ceil(max(limxx,limyy)/cell);
-        gridSize = numCells * cell;
+        assert(x_amplitude > 0);
+        assert(y_amplitude > 0);
 
-        grid.resize(numCells, vector<vector<Bucket*>>(numCells));
-
+        double max_amplitude = max(x_amplitude, y_amplitude);
+        return ceil(max_amplitude / m_cell_size);
     }
 
-    vector<Bucket*> getCell(double x, double y) const {
-        int cellX = floor(x/cellSize);
-        int cellY = floor(y/cellSize);
-        return grid[cellX][cellY];
+    /**
+     * lower_limit: The leftmost|lowermost point in the area
+     * upper_limit: The rightmost|uppermost point in the area
+     * */
+    uGrid(double cell_size, uint32_t bucket_size, Point lower_limit, Point upper_limit)
+        : m_lower_limit(lower_limit),
+          m_upper_limit(upper_limit),
+          m_cell_size(cell_size),
+          m_n_cells(calculate_size_number()),
+          m_bucket_size(bucket_size),
+          max_pos_x(0.0),
+          max_neg_x(0.0),
+          max_pos_y(0.0),
+          max_neg_y(0.0)
+    {
+        m_grid.resize(m_n_cells, vector<grid_element>(m_n_cells));
     }
 
-    void localUpdate(Entry newEntry) {
-        int cellX = newEntry.p.getX() / cellSize;
-        int cellY = newEntry.p.getY() / cellSize;
-        auto newgridcell = grid[cellX][cellY];
-        SecondaryEntry oldEntry = *SearchbyIS(newEntry.id);
-        auto oldgridcell = *oldEntry.ptr2;
-        if (oldgridcell == newgridcell) {
-            Bucket* currentBucket = oldEntry.ptr1;
-            Point newPoint(newEntry.p.getX(), newEntry.p.getY());
-            currentBucket->objectData[oldEntry.index].p = newPoint;
-        } else {
-            deleteFromCell(oldEntry);
-            insertIntoCell(newEntry);
+    void insert_update(Entry const& entry) {
+        auto it = m_secondary_index.find(entry.id);
+
+        auto [x_offset, y_offset] = get_offset(entry.p);
+
+        if (x_offset < 0 || y_offset < 0) {
+            return;
         }
-    }
 
-    /*double maxVelocity(){
-        double maxi = -1e9;
-        for(auto &i : grid ){
-            for(auto &j : i){
-                for(auto &k : j){
-                    double z = k->getMaxVelocity();
-                    if(maxi < z){
-                        maxi = z;
-                    }
-                }
+        auto [cell_x, cell_y] = cell_coords_for_offset(x_offset, y_offset);
+
+        if (cell_x >= m_n_cells || cell_y >= m_n_cells) {
+            return;
+        }
+
+        double speed_x = entry.v.getX();
+        double speed_y = entry.v.getY();
+
+        if (speed_x < 0) {
+            max_neg_x = std::min(speed_x, max_neg_x);
+        }
+        else {
+            max_pos_x = std::max(speed_x, max_pos_x);
+        }
+
+        if (speed_y < 0) {
+            max_neg_y = std::min(speed_y, max_neg_y);
+        }
+        else {
+            max_pos_y = std::max(speed_y, max_pos_y);
+        }
+
+        grid_element& new_cell = m_grid.at(cell_x).at(cell_y);
+
+        if (it == m_secondary_index.end()) {
+            auto [p_bucket, index_in_bucket] = insert_no_sindex(entry, new_cell);
+            m_secondary_index[entry.id] = {&new_cell, p_bucket, index_in_bucket};
+            return;
+        }
+
+        SecondaryEntry& se = it->second;
+
+        if (se.p_grid_cell == std::addressof(new_cell)) {
+            localUpdate(se.p_bucket->at(se.index_in_bucket), entry);
+        }
+        else {
+            // Remove the element from its current cell
+            grid_element& old_cell = *se.p_grid_cell;
+
+            assert(!old_cell.empty());
+
+            Bucket& first_bucket = old_cell.front();
+
+            assert(!first_bucket.empty());
+
+            Entry& last_in_first_bucket = first_bucket.back();
+            Entry& removing_entry = se.p_bucket->at(se.index_in_bucket);
+
+            if (&last_in_first_bucket != &removing_entry) {
+                removing_entry.id = last_in_first_bucket.id;
+                removing_entry.p = last_in_first_bucket.p;
+                removing_entry.v = last_in_first_bucket.p;
+
+                SecondaryEntry& se_swapping = m_secondary_index.at(last_in_first_bucket.id);
+                assert(se_swapping.p_grid_cell == se.p_grid_cell);
+                se_swapping.p_bucket = se.p_bucket;
+                se_swapping.index_in_bucket = se.index_in_bucket;
             }
+
+            first_bucket.pop_back();
+            if (first_bucket.size() == 0) {
+                old_cell.pop_front();
+            }
+
+            // Insert it in new location
+            auto [p_bucket, index_in_bucket] = insert_no_sindex(entry, new_cell);
+
+            se.p_grid_cell = &new_cell;
+            se.index_in_bucket = index_in_bucket;
+            se.p_bucket = p_bucket;
         }
-        return maxi;
-    }*/
-
-
-    void deleteFromCell(SecondaryEntry &e) {
-        e.ptr1->deleteEntry(e.oid);
-        secondaryIndex.erase(e.oid);
-//        maxVelocity();
     }
 
-    Point getMaxVel() const{
-        return maxiVel;
-    }
-    Point getMinVel() const{
-        return minVel;
-    }
+    void localUpdate(Entry& updating_entry, Entry const& new_entry) {
+        assert(updating_entry.deleted_p == false);
 
-    void insertOrUpdate(Entry & e){
-        if (SearchbyIS(e.id) == nullptr)
-            insertIntoCell(e);
-        else
-            localUpdate(e);
+        updating_entry.p = new_entry.p;
+        updating_entry.v = new_entry.v;
     }
 
-    void insertIntoCell(Entry &data) {
-        int cellX = data.p.getX() / cellSize;
-        int cellY = data.p.getY() / cellSize;
+    double maxVelocity(){
+        return max({max_neg_x, max_pos_x, max_neg_y, max_neg_x});
+    }
 
-        if(grid[cellX][cellY].empty()){
-            Bucket* b = new Bucket(bucketSize);
-            grid[cellX][cellY].push_back(b);
+    auto get_offset(Point const& p) -> std::pair<double, double> {
+        double x_offset = (p.getX() - m_lower_limit.getX());
+        double y_offset = (p.getY() - m_lower_limit.getY());
+
+        return {x_offset, y_offset};
+    }
+
+    auto cell_coords_for_offset(double dx, double dy) -> std::pair<uint32_t, uint32_t> {
+        uint32_t cell_x = dx / m_cell_size;
+        uint32_t cell_y = dy / m_cell_size;
+
+        return {cell_x, cell_y};
+    }
+
+    auto insert_no_sindex(Entry const& e, grid_element& cell)
+        -> std::pair<Bucket*, uint32_t> {
+        if (cell.empty()) {
+            cell.push_back({});
         }
 
-        auto ins = grid[cellX][cellY].back()->insert(data);
-        if(!ins){
-            Bucket* b = new Bucket(bucketSize);
-            b->insert(data);
-            grid[cellX][cellY].push_back(b);
+        Bucket& first_bucket = cell.front();
+        if (first_bucket.size() == m_bucket_size) {
+            cell.push_front({});
+            Bucket& new_first_bucket = cell.front();
+            new_first_bucket.push_back(e);
+            return {&new_first_bucket, new_first_bucket.size() - 1};
         }
-        SecondaryEntry minieentrie(&grid[cellX][cellY], grid[cellX][cellY].back(), data.id);
-        secondaryIndex[data.id] = minieentrie;
+        else {
+            first_bucket.push_back(e);
+            return {&first_bucket, first_bucket.size() - 1};
+        }
     }
-
-    SecondaryEntry* SearchbyIS(int idx){
-        auto it = secondaryIndex.find(idx);
-        return (it != secondaryIndex.end()) ? &it->second : nullptr;
-    }
-
-    //return elements of grids
-
-    //
 
     pair<Point,Point> enlargeS(Point q1, Point q2, double tq){
         //Definimos los bordes de S
@@ -174,6 +222,8 @@ public:
         double minY = minC.getY();
         double maxX = maxC.getX();
         double maxY = maxC.getY();
+        
+        vector<Entry> result;
 
         //Definimos ST -> minimum rectangle with grid cell boundaries containing S
         bool flag = false;
@@ -218,12 +268,11 @@ public:
     }
 
     void printIndexSecondary(){
-        for(auto &i : secondaryIndex){
+        for(auto &i : m_secondary_index){
             cout << "*******************" << endl;
-            cout << " oid : " << i.second.oid << endl;
-            cout << " Index : " << i.second.index << endl;
-            cout << " size :  "<< i.second.ptr1->entries << endl;
-            for(auto &iem : i.second.ptr1->objectData ){
+            cout << " Index : " << i.second.index_in_bucket << endl;
+            cout << " size :  "<< i.second.p_bucket->size() << endl;
+            for(auto &iem : *i.second.p_bucket ){
                 cout << "ID " << iem.id << endl;
             }
             cout << "*******************" << endl;
@@ -231,37 +280,32 @@ public:
     }
 
     void printGrid() const {
-        for (int i = 0; i < grid.size(); ++i) {
-            for (int j = 0; j < grid[i].size(); ++j) {
-                std::cout << "Cell (" << i * cellSize << ", " << j * cellSize << "): ";
-                vector<Bucket*> currentBucket = grid[i][j];
+        for (int i = 0; i < m_grid.size(); ++i) {
+            for (int j = 0; j < m_grid[i].size(); ++j) {
+                std::cout << "Cell (" << i * m_cell_size << ", " << j * m_cell_size << "): ";
+                grid_element const& grid_e = m_grid[i][j];
                 cout << endl <<"---------------------------- " << endl;
-                for(auto &oo : currentBucket) {
-                    if (oo != nullptr) {
-                        for (auto &entry: oo->objectData) {
-                            std::cout << "ID : " << entry.id << " - ";
-                        }
+
+                for(Bucket const& b : grid_e) {
+                    for (Entry const& entry: b) {
+                        std::cout << "ID : " << entry.id << " - ";
                     }
                     std::cout << std::endl;
                 }
+
                 cout << "---------------------------- " << endl;
                 std::cout << std::endl;
             }
         }
     }
-    void cleanup() {
-        for (auto& row : grid) {
-            for (auto& col : row) {
-                for (auto& bucket : col) {
-                    if (bucket != nullptr) {
-                        delete bucket;
-                    }
-                }
-                col.clear();
+
+    void clear() {
+        for (auto& row : m_grid) {
+            for (grid_element ge : row) {
+                ge.clear();
             }
         }
-        secondaryIndex.clear();
+
+        m_secondary_index.clear();
     }
 };
-
-#endif //D_GRID_UGRID_H
