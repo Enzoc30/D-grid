@@ -136,32 +136,7 @@ int main(){
                 }
                 window.setView(view);
             }
-
-            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
-                
-                // Verificar si se hizo clic en alguna casilla de entrada
-                for (size_t i = 0; i < inputTexts.size(); ++i) {
-                    if (isMouseOverRect(mousePos, inputTexts[i])) {
-                        // Activar la casilla de entrada correspondiente
-                        activeInputs[i] = true;
-                    } else {
-                        // Desactivar las otras casillas de entrada
-                        activeInputs[i] = false;
-                    }
-                }
-            }
-
-            // Capturar entrada del teclado
-            if (event.type == sf::Event::TextEntered) {
-                for (size_t i = 0; i < labels.size(); ++i) {
-                    // Asegurarse de que la etiqueta tenga el foco antes de permitir la entrada
-                    if (activeInputs[i]) {
-                        // Concatenar el carácter a la casilla de entrada
-                        inputTexts[i].setString(inputTexts[i].getString() + static_cast<char>(event.text.unicode));
-                    }
-                }
-            }
+            
 
             // if(event.type == sf::Event::TextEntered){
             //     playerInput +=event.text.unicode;
