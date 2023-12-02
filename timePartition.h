@@ -19,32 +19,34 @@ private:
     double minVeloY;
 public:
     timePartition(double _dt, Point limiS, Point limitI ,int cell, int bucket)
-            : dt(_dt), actualTime(0), u1(uGrid(limiS, limitI , cell, bucket)), u2(uGrid(limiS, limitI, cell, bucket)) {}
+        : dt(_dt), actualTime(0),
+          u1(uGrid(cell, bucket, limiS, limitI)),
+          u2(uGrid(cell, bucket, limiS, limitI)) {}
 
-
-    void update(Entry e) {
-        if (static_cast<int>(e.time / dt) % 2) {
-            u1.insertOrUpdate(e);
+    void update(Entry e, double time) {
+        if (static_cast<int>(time / dt) % 2) {
+            u1.insert_update(e);
         } else {
-            u2.insertOrUpdate(e);
+            u2.insert_update(e);
         }
 
-        if (static_cast<int>(e.time / dt) % 2 != static_cast<int>(actualTime / dt) % 2) {
+        if (static_cast<int>(time / dt) % 2 != static_cast<int>(actualTime / dt) % 2) {
             if (static_cast<int>(actualTime / dt) % 2)
-                u1.cleanup();
+                u1.clear();
             else
-                u2.cleanup();
+                u2.clear();
         }
-        actualTime = e.time;
+
+        actualTime = time;
     }
 
     void print() {
         if (static_cast<int>(actualTime / dt) % 2) {
             u1.printGrid();
-            cout << "Max Velocity : " << u1.getMaxVel( ) << endl;
+            // cout << "Max Velocity : " << u1.getMaxVel( ) << endl;
         } else {
             u2.printGrid();
-            cout << "Max Velocity : " << u2.getMaxVel( ) << endl;
+            // cout << "Max Velocity : " << u2.getMaxVel( ) << endl;
         }
     }
 };
